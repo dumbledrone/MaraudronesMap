@@ -1,0 +1,30 @@
+#appGrid {
+  display: grid;
+  grid-template-columns: 1fr 500px;
+  grid-template-rows: 20px 1fr 100px;
+  column-gap: 10px;
+  row-gap: 10px;
+  height: calc(100vh - 20px);
+  margin: 10px;
+}
+
+app-map {
+  grid-column-start: 1;
+  grid-row-start: 2;
+}
+app-time-slider {
+  grid-column-start: 1;
+  grid-row-start: 3;
+}
+app-file-selector{
+  grid-column-start: 2;
+  grid-row-start: 3;
+}
+#infos {
+  grid-column-start: 2;
+  grid-row-start: 2;
+}
+#appearanceButton {
+  grid-column-start: 1;
+  grid-row-start: 1;
+}
