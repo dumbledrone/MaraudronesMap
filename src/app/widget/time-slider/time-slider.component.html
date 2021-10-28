@@ -1,2 +1,2 @@
 <p>Zeit: {{flightDuration}}</p>
-<input type="range" min="0" [max]="flightDuration" [value]="currentTime" (change)="timeSliderChanged($event)">
+<input type="range" min="0" [max]="flightDuration-1" [value]="currentTime" (change)="timeSliderChanged($event)" style="width: 100%">

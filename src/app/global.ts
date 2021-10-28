@@ -1,7 +1,15 @@
 import {Component, Injectable} from "@angular/core";
 import * as constants from "./constants";
 import {NgxIndexedDBService} from "ngx-indexed-db";
-import {DATA_DBNAME, FILE_DBNAME, LATITUDE, LONGITUDE, MESSAGE_FILE_KEY, MESSAGE_MESSAGENUM_KEY} from "./constants";
+import {
+  DATA_DBNAME,
+  FILE_DBNAME,
+  LATITUDE,
+  LONGITUDE, MAX_LATITUDE, MAX_LONGITUDE,
+  MESSAGE_FILE_KEY,
+  MESSAGE_MESSAGENUM_KEY,
+  MIN_LATITUDE, MIN_LONGITUDE
+} from "./constants";
 
 
 @Injectable({
@@ -67,6 +75,12 @@ export class Globals {
     return this._dbMessage;
   }
 
+  set file(file: DbFile) {}
+
+  public get file(): DbFile {
+    return this._dbFile;
+  }
+
 
   processFile(): void {
     // TODO get duration!
@@ -81,10 +95,12 @@ export class Globals {
       let attrs = lines[0].split(",");
       let latIndex = attrs.indexOf(constants.LATITUDE);
       let longIndex = attrs.indexOf(constants.LONGITUDE);
+      let invalid = true;
       for (let count = 1; count < lines.length; count+=10) {// TODO count++
         let values = lines[count].split(",");
-        if(values[latIndex] === "0.0")
+        if(invalid && (values[latIndex] === "" || values[latIndex] === "0.0"))
           continue;
+        invalid = false;
         rawDataElements.push(values);
         // console.log(count);
         // console.log(rawDataElements[count - 1][latIndex] + "  -  " + rawDataElements[count - 1][attrs.indexOf("time")])
@@ -94,11 +110,17 @@ export class Globals {
         rawDataElements.pop();
       }
 
+      let latCol: number[] = rawDataElements.map(r => r[latIndex]).map(r => parseFloat(r));
+      let longCol: number[] = rawDataElements.map(r => r[longIndex]).map(r => parseFloat(r));
       inst.dbService.add(FILE_DBNAME, [{// TODO save all file indizes here :) (& add to definition in app.module.ts)
         fileName: inst._file.name,
         messageCount: rawDataElements.length,
         longitude: longIndex,
-        latitude: latIndex
+        latitude: latIndex,
+        minLatitude: Math.min(...latCol),
+        maxLatitude: Math.max(...latCol),
+        minLongitude: Math.min(...longCol),
+        maxLongitude: Math.max(...longCol),
       }]).subscribe((res: any) => {
         console.log('created file id: ' + res.id);
         inst.loadDbFiles();
@@ -144,6 +166,7 @@ export interface DroneMapWidget {
   update(): void;
   fileChanged(): void;
   fileListChanged(): void;
+
 }
 
 export class DbFile {
@@ -152,18 +175,26 @@ export class DbFile {
   public id: number;
   public longIndex: number;
   public latIndex: number;
+  public minLatitude: number;
+  public maxLatitude: number;
+  public minLongitude: number;
+  public maxLongitude: number;
 
-  constructor(fileName: string, messageCount: number, id: number, longIndex: number, latIndex: number) {
+  constructor(fileName: string, messageCount: number, id: number, longIndex: number, latIndex: number, minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.id = id;
     this.longIndex = longIndex;
     this.latIndex = latIndex;
+    this.minLatitude = minLatitude;
+    this.maxLatitude = maxLatitude;
+    this.minLongitude = minLongitude;
+    this.maxLongitude = maxLongitude;
   }
 
   static fromResultArray(resultArr: any[]): DbFile[] {
     let arr: DbFile[] = [];
-    resultArr.forEach(r => arr.push(new DbFile(r[0].fileName, r[0].messageCount, r.id, r[0][LONGITUDE], r[0][LATITUDE])));
+    resultArr.forEach(r => arr.push(new DbFile(r[0].fileName, r[0].messageCount, r.id, r[0][LONGITUDE], r[0][LATITUDE], r[0][MIN_LATITUDE], r[0][MAX_LATITUDE], r[0][MIN_LONGITUDE], r[0][MAX_LONGITUDE])));
     return arr;
   }
 }

@@ -1,16 +1,13 @@
 <h2 mat-dialog-title>Appearance</h2>
-<mat-dialog-content [formGroup]="form">
 
-  <mat-form-field>
-    <mat-checkbox color="primary">fly info</mat-checkbox><br/>
-    <mat-checkbox color="primary">controller info</mat-checkbox>
-    <input matInput
-          placeholder="testStuff"
-          formControlName="description">
-  </mat-form-field>
+<mat-dialog-content  style="width: 200px; height: fit-content; overflow-y:hidden" [formGroup]="form">
+  <mat-checkbox color="primary" formControlName="checkbox0">flight info </mat-checkbox><br/>
+  <mat-checkbox color="primary" formControlName="checkbox1">controller info</mat-checkbox>
+  <!-- //#checkboxNumber-->
 </mat-dialog-content>
+
 <mat-dialog-actions>
-  <button class="mat-raised-button"(click)="close()">Close</button>
-  <button class="mat-raised-button mat-primary"(click)="save()">Save</button>
+  <button class="mat-raised-button" (click)="close()">Close</button>
+  <button class="mat-raised-button mat-primary" (click)="save()">Save</button>
 </mat-dialog-actions>
 
