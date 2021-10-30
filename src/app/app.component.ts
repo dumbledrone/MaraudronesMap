@@ -32,17 +32,16 @@ export class AppComponent implements OnInit {
     }
     const dialogRef = this.dialog.open(AppearenceDialogueComponent, dialogConfig);
 
-    dialogRef.afterClosed().subscribe(
-      data => {
-        console.log("Dialog output: ", data);
-        for (let i = 0; i < 2; i++) {    //#checkboxNumber
-          localStorage.setItem("checkbox" + i, data["checkbox"+i] ? "true": "false");
-          this._localStorageValues[i] = data["checkbox"+i];
-        }
-        this.updateInfoView();
+    dialogRef.afterClosed().subscribe(data => {
+      console.log("Dialog output: ", data);
+      for (let i = 0; i < 2; i++) {    //#checkboxNumber
+        localStorage.setItem("checkbox" + i, data["checkbox"+i] ? "true": "false");
+        this._localStorageValues[i] = data["checkbox"+i];
       }
-  )
+      this.updateInfoView();
+    });
   }
+
   updateInfoView() {
     //#checkboxNumber
     //@ts-ignore
@@ -50,6 +49,7 @@ export class AppComponent implements OnInit {
     //@ts-ignore
     document.getElementById("infos1")?.style.display = this._localStorageValues[1] ? "block" : "none";
   }
+
   getLocalStorageValues() {
     for (let i = 0; i < 2; i++) {     //#checkboxNumber i < number of checkboxes
       let tmp = localStorage.getItem("checkbox" + i);

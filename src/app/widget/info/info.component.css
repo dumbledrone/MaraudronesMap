@@ -1,0 +1,17 @@
+#infoDiv {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  height: fit-content;
+}
+
+.label {
+  grid-column: 1;
+  margin-right: 5px;
+}
+.label::after {
+  content: ":";
+}
+
+.value {
+  grid-column: 2;
+}

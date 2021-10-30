@@ -13,19 +13,21 @@ import { FileSelectorComponent } from './widget/file-selector/file-selector.comp
 
 import {DBConfig, NgxIndexedDBModule} from 'ngx-indexed-db';
 import {
+  ALTITUDE, BATTERY_CAP_PERCENT, BATTERY_TEMP, BATTERY_VOLT,
   DATA_DBNAME,
   FILE_DBNAME,
   LATITUDE,
   LONGITUDE, MAX_LATITUDE, MAX_LONGITUDE,
   MESSAGE_FILE_KEY,
   MESSAGE_MESSAGENUM_KEY,
-  MIN_LATITUDE, MIN_LONGITUDE
+  MIN_LATITUDE, MIN_LONGITUDE, NUM_GPS
 } from "./constants";
 import { AppearenceDialogueComponent } from './helpers/appearence-dialogue/appearence-dialogue.component';
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatInputModule} from "@angular/material/input";
 import {MatCheckboxModule} from "@angular/material/checkbox";
+import {MatButtonToggleModule} from "@angular/material/button-toggle";
 
 const dbConfig: DBConfig  = {
   name: 'droneWebGuiDB',
@@ -41,7 +43,12 @@ const dbConfig: DBConfig  = {
       { name: MIN_LATITUDE, keypath: "", options: {unique: false} },
       { name: MAX_LATITUDE, keypath: "", options: {unique: false} },
       { name: MIN_LONGITUDE, keypath: "", options: {unique: false} },
-      { name: MAX_LONGITUDE, keypath: "", options: {unique: false} }
+      { name: MAX_LONGITUDE, keypath: "", options: {unique: false} },
+      { name: ALTITUDE, keypath: "", options: {unique: false} },
+      { name: BATTERY_CAP_PERCENT, keypath: "", options: {unique: false}},
+      { name: BATTERY_TEMP, keypath: "", options: {unique: false}},
+      { name: BATTERY_VOLT, keypath: "", options: {unique: false}},
+      { name: NUM_GPS, keypath: "", options: {unique: false}}
 
     ]
   }, {
@@ -74,7 +81,8 @@ const dbConfig: DBConfig  = {
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
-    MatCheckboxModule
+    MatCheckboxModule,
+    MatButtonToggleModule
   ],
   providers: [],
   bootstrap: [AppComponent],

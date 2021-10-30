@@ -2,13 +2,14 @@ import {Component, Injectable} from "@angular/core";
 import * as constants from "./constants";
 import {NgxIndexedDBService} from "ngx-indexed-db";
 import {
+  ALTITUDE, BATTERY_CAP_PERCENT, BATTERY_TEMP, BATTERY_VOLT,
   DATA_DBNAME,
   FILE_DBNAME,
   LATITUDE,
   LONGITUDE, MAX_LATITUDE, MAX_LONGITUDE,
   MESSAGE_FILE_KEY,
   MESSAGE_MESSAGENUM_KEY,
-  MIN_LATITUDE, MIN_LONGITUDE
+  MIN_LATITUDE, MIN_LONGITUDE, NUM_GPS
 } from "./constants";
 
 
@@ -19,7 +20,6 @@ export class Globals {
   private _subscriptions: Set<DroneMapWidget> = new Set();
 
   private _file: File | null = null;
-  private _fileName: string = "";
   private _fileId: number = -1;
   private _dbFile!: DbFile;
   private _flightDuration: number = 0;
@@ -54,15 +54,10 @@ export class Globals {
   public importFile(file: File) {
     this._file = file;
     this.processFile();
-    this.updated();
   }
 
   get flightDuration(): number {
     return this._flightDuration;
-  }
-
-  get fileName(): string {
-    return this._fileName;
   }
 
   get availableFiles(): DbFile[] {
@@ -95,16 +90,26 @@ export class Globals {
       let attrs = lines[0].split(",");
       let latIndex = attrs.indexOf(constants.LATITUDE);
       let longIndex = attrs.indexOf(constants.LONGITUDE);
+      let timeIndex = attrs.indexOf("time");
       let invalid = true;
-      for (let count = 1; count < lines.length; count+=10) {// TODO count++
+
+      let lastTimeStamp = "--";
+      let end = lines.length - 1;
+      console.log(new Date());
+      for (let count = 1; count < end; count++) {
         let values = lines[count].split(",");
         if(invalid && (values[latIndex] === "" || values[latIndex] === "0.0"))
           continue;
+        let timeVal = values[timeIndex];
+        if(timeVal.startsWith(lastTimeStamp))
+          continue;
+        lastTimeStamp = timeVal;
         invalid = false;
         rawDataElements.push(values);
         // console.log(count);
         // console.log(rawDataElements[count - 1][latIndex] + "  -  " + rawDataElements[count - 1][attrs.indexOf("time")])
       }
+      console.log(new Date());
       let len = rawDataElements.length - 1;
       if (rawDataElements[len].length !== rawDataElements[len - 1].length) {
         rawDataElements.pop();
@@ -117,10 +122,15 @@ export class Globals {
         messageCount: rawDataElements.length,
         longitude: longIndex,
         latitude: latIndex,
+        altitude: attrs.indexOf(constants.ALTITUDE),
         minLatitude: Math.min(...latCol),
         maxLatitude: Math.max(...latCol),
         minLongitude: Math.min(...longCol),
         maxLongitude: Math.max(...longCol),
+        cap_per: attrs.indexOf(BATTERY_CAP_PERCENT),
+        temp: attrs.indexOf(BATTERY_TEMP),
+        vol_t: attrs.indexOf(BATTERY_VOLT),
+        numGPS: attrs.indexOf(NUM_GPS)
       }]).subscribe((res: any) => {
         console.log('created file id: ' + res.id);
         inst.loadDbFiles();
@@ -136,7 +146,6 @@ export class Globals {
     let file = this.availableFiles.find(a => a.id === fileId);
     if(file === undefined)
       return;
-    this._fileName = file.fileName;
     this._fileId = file.id;
     this._flightDuration = file.messageCount;
     this._dbFile = file;
@@ -164,7 +173,7 @@ export class Globals {
 
 export interface DroneMapWidget {
   update(): void;
-  fileChanged(): void;
+  fileChanged(): void; // Only change file related info, as message will be loaded after this event fired! -> globals.message might be undefined
   fileListChanged(): void;
 
 }
@@ -175,26 +184,40 @@ export class DbFile {
   public id: number;
   public longIndex: number;
   public latIndex: number;
+  public altIndex: number;
   public minLatitude: number;
   public maxLatitude: number;
   public minLongitude: number;
   public maxLongitude: number;
+  public batCapPercInd: number;
+  public batTempInd: number;
+  public batVoltInd: number;
+  public numGPSInd: number;
 
-  constructor(fileName: string, messageCount: number, id: number, longIndex: number, latIndex: number, minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number) {
+  constructor(fileName: string, messageCount: number, id: number, longIndex: number, latIndex: number, altIndex: number,
+              minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number, batCapPercInd: number,
+              batTempInd: number, batVoltInd: number, numGPSInd: number) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.id = id;
     this.longIndex = longIndex;
     this.latIndex = latIndex;
+    this.altIndex = altIndex;
     this.minLatitude = minLatitude;
     this.maxLatitude = maxLatitude;
     this.minLongitude = minLongitude;
     this.maxLongitude = maxLongitude;
+    this.batCapPercInd = batCapPercInd;
+    this.batTempInd = batTempInd;
+    this.batVoltInd = batVoltInd;
+    this.numGPSInd = numGPSInd;
   }
 
   static fromResultArray(resultArr: any[]): DbFile[] {
     let arr: DbFile[] = [];
-    resultArr.forEach(r => arr.push(new DbFile(r[0].fileName, r[0].messageCount, r.id, r[0][LONGITUDE], r[0][LATITUDE], r[0][MIN_LATITUDE], r[0][MAX_LATITUDE], r[0][MIN_LONGITUDE], r[0][MAX_LONGITUDE])));
+    resultArr.forEach(r => arr.push(new DbFile(r[0].fileName, r[0].messageCount, r.id, r[0][LONGITUDE], r[0][LATITUDE],
+      r[0][ALTITUDE], r[0][MIN_LATITUDE], r[0][MAX_LATITUDE], r[0][MIN_LONGITUDE], r[0][MAX_LONGITUDE],
+      r[0][BATTERY_CAP_PERCENT], r[0][BATTERY_TEMP], r[0][BATTERY_VOLT], r[0][NUM_GPS])));
     return arr;
   }
 }
@@ -205,16 +228,29 @@ export class DbMessage {
   messageNum: number;
   longitude: number;
   latitude: number;
+  altitude: number;
+  batCapPerc: number;
+  batTemp: number;
+  batVolt: number;
+  numGPS: number;
 
-  constructor(id: number, fileId: number, messageNum: number, longitude: number, latitude: number) {
+  constructor(id: number, fileId: number, messageNum: number, longitude: number, latitude: number, altitude: number,
+              batCapPerc: number, batTemp: number, batVolt: number, numGPS: number) {
     this.id = id;
     this.fileId = fileId;
     this.messageNum = messageNum;
     this.longitude = longitude;
     this.latitude = latitude;
+    this.altitude = altitude;
+    this.batCapPerc = batCapPerc;
+    this.batTemp = batTemp;
+    this.batVolt = batVolt;
+    this.numGPS = numGPS;
   }
 
   static fromResult(result: any, file: DbFile): DbMessage {
-    return new DbMessage(result.id, result.fileId, result.messageNum, result[file.longIndex], result[file.latIndex]);
+    return new DbMessage(result.id, result.fileId, result.messageNum, result[file.longIndex], result[file.latIndex],
+      result[file.altIndex], result[file.batCapPercInd], result[file.batTempInd], result[file.batVoltInd],
+      result[file.numGPSInd]);
   }
 }

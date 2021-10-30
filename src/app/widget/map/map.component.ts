@@ -13,6 +13,7 @@ export class MapComponent implements OnInit, DroneMapWidget {
 
   longitude: number = 0;
   latitude: number = 0;
+  altitude: number = 0;
 
   myMap!: L.Map;
   marker!: L.Marker;

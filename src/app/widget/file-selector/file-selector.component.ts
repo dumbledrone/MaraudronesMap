@@ -33,11 +33,11 @@ export class FileSelectorComponent implements OnInit, DroneMapWidget {
   }
 
   handleFileSelect(event: any): void {
-    this.globals.selectFile(parseInt(event.target.value))
+    this.globals.selectFile(parseInt(event.target.value));
   }
 
   showFileInfo(): void {
-    this.fileName = this.globals.fileName;
+    this.fileName = this.globals.file?.fileName;
   }
 
   update(): void {

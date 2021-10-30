@@ -1,1 +1,11 @@
-<p>info works!</p>
+<div id="infoDiv">
+<span class="label">longitude</span><span class="value">{{longitude}}</span>
+  <span class="label">latitude</span><span class="value">{{latitude}}</span>
+  <span class="label">altitude</span><span class="value">{{altitude | number: "1.2-2"}}m</span>
+  <br/>
+  <span class="label">Satellite number</span><span class="value">{{satelliteNumber}}</span>
+  <br/>
+  <span class="label">battery capacity</span><span class="value">{{batteryPercentage}}%</span>
+  <span class="label">battery temperature</span><span class="value">{{batteryTemp}}°C</span>
+  <span class="label">battery voltage</span><span class="value">{{batteryVoltage}}</span>
+</div>
