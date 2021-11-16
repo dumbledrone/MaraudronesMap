@@ -1,11 +1,28 @@
 <div id="infoDiv">
-<span class="label">longitude</span><span class="value">{{longitude}}</span>
-  <span class="label">latitude</span><span class="value">{{latitude}}</span>
-  <span class="label">altitude</span><span class="value">{{altitude | number: "1.2-2"}}m</span>
+  <span class="label">
+    <span class="material-icons grey" title="longitude">gps_fixed</span>
+        </span><span class="value">{{longitude}}</span>
+  <span class="label">
+        <span class="material-icons grey" title="latitude">gps_fixed</span>
+    </span><span class="value">{{latitude}}</span>
+  <span class="label">
+    <span class="material-icons grey" title="altitude above ground">upgrade</span>
+    </span><span class="value">TODO m</span>
+  <span class="label">
+    <span class="material-icons grey" title="altitude above NN">waves</span>
+    </span><span class="value">{{altitudeNN | number: "1.2-2"}}m</span>
+  <span class="label">
+    <span class="material-icons grey" title="altitude by ultra sound">expand</span>
+    </span><span class="value">TODO m</span>
   <br/>
-  <span class="label">Satellite number</span><span class="value">{{satelliteNumber}}</span>
+  <span class="label">
+    <span class="material-icons grey" title="satellite number">satellite_alt</span>
+    </span><span class="value">{{satelliteNumber}}</span>
   <br/>
-  <span class="label">battery capacity</span><span class="value">{{batteryPercentage}}%</span>
-  <span class="label">battery temperature</span><span class="value">{{batteryTemp}}°C</span>
-  <span class="label">battery voltage</span><span class="value">{{batteryVoltage}}</span>
+  <span class="label">
+    <span class="material-icons grey" title="battery level">battery_std</span>
+    </span><span class="value">{{batteryPercentage}}%</span>
+  <span class="label">
+    <span class="material-icons grey" title="battery temperature">thermostat</span>
+    </span><span class="value">{{batteryTemp}}°C</span>
 </div>

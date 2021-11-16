@@ -8,8 +8,9 @@
   grid-column: 1;
   margin-right: 5px;
 }
-.label::after {
-  content: ":";
+
+span.grey {
+  color: grey;
 }
 
 .value {

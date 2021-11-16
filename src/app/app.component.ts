@@ -9,6 +9,7 @@ import {AppearenceDialogueComponent} from "./helpers/appearence-dialogue/appeare
 })
 export class AppComponent implements OnInit {
   title = 'drone-web-gui';
+  mapType = 3;
   private _localStorageValues : boolean[];
 
   constructor(private dialog:MatDialog) {

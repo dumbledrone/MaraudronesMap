@@ -9,11 +9,10 @@ import {DroneMapWidget, Globals} from "../../global";
 export class InfoComponent implements OnInit, DroneMapWidget {
   longitude = 0;
   latitude = 0;
-  altitude = 0;
+  altitudeNN = 0;
   batteryPercentage = 100;
   satelliteNumber = 0;
   batteryTemp = 0;
-  batteryVoltage = 0;
 
   constructor(private globals: Globals) {
     this.globals.subscribe(this);
@@ -28,14 +27,16 @@ export class InfoComponent implements OnInit, DroneMapWidget {
   fileListChanged(): void {
   }
 
-  update(): void {
-    let mes = this.globals.message;
-    this.longitude = mes.longitude;
-    this.latitude = mes.latitude;
-    this.altitude = mes.altitude;
-    this.batteryPercentage = mes.batCapPerc;
-    this.satelliteNumber = mes.numGPS;
-    this.batteryTemp = mes.batTemp;
-    this.batteryVoltage = mes.batVolt;
+  update(): void {  //TODO Annika: like this?
+    let gpsMes = this.globals.gpsMessage;
+    let batMes = this.globals.batteryMessage;
+    if(!gpsMes || !batMes)
+      return;
+    this.longitude = gpsMes.longitude;
+    this.latitude = gpsMes.latitude;
+    this.altitudeNN = gpsMes.altitude;
+    this.batteryPercentage = batMes.cap_per;
+    this.satelliteNumber = gpsMes.numGPS;
+    this.batteryTemp = batMes.temp;
   }
 }

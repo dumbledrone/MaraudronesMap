@@ -10,11 +10,15 @@ const STEP_SPEED_KEY = "stepSpeed";
   styleUrls: ['./time-slider.component.css']
 })
 export class TimeSliderComponent implements OnInit, DroneMapWidget {
-  flightDuration: number = 0;
+  flightDurationSeconds: number = 0;
+  flightMessagesNumber: number = 0;
   _currentTime: number = 0;
   _step: number = 1;
   _stepSpeed: number = 1;
   play: boolean = false;
+  _useSeconds = true;
+  _sliderMax: number = 0;
+  _offset = 0;
 
   constructor(protected globals: Globals) {
     this.globals.subscribe(this);
@@ -30,26 +34,42 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   update(): void {
-    this.flightDuration = this.globals.flightDuration;
-    console.log(this.flightDuration);
   }
 
   fileChanged(): void {
     this.currentTime = 0;
+    this.flightDurationSeconds = this.globals.file.flightDuration;
+    this.flightMessagesNumber = this.globals.file.messageCount;
+    this.updateSlider();// TODO set offset
   }
   fileListChanged(): void { }
 
   get currentTime(): number {
-    return this._currentTime;
+    return this._currentTime - this._offset;
   }
 
   set currentTime(val: number) {
-    if(val > this.flightDuration -1)
-      val = this.flightDuration - 1;
+    if(this._useSeconds && val > this.flightDurationSeconds -1)
+      val = this.flightDurationSeconds - 1;
+    else if (!this._useSeconds && val > this.flightMessagesNumber - 1)
+      val = this.flightMessagesNumber - 1;
     if (val < 0)
       val = 0;
     this._currentTime = val;
-    this.globals.loadMessage(this._currentTime);
+    if(this._useSeconds)
+      this.globals.loadMessagesBySecond(this._currentTime);
+    else
+      this.globals.loadMessagesById(this._currentTime);
+  }
+
+  get useSeconds(): boolean {
+    return this._useSeconds;
+  }
+
+  set useSeconds(val: boolean) {
+    this._useSeconds = val;
+    this.updateSlider();// TODO persist
+    // TODO get secs from message num / get messagenum from secs
   }
 
   get step() {
@@ -57,7 +77,7 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   set step(step) {
-    this._step = parseInt(String(step));
+    this._step = parseFloat(String(step));
     localStorage.setItem(STEP_KEY, String(step));
   }
 
@@ -65,8 +85,8 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
     return this._stepSpeed;
   }
 
-  set stepSpeed(stepSpeed) {
-    this._stepSpeed = parseInt(String(stepSpeed));
+  set stepSpeed(stepSpeed) {// TODO does not work correctly
+    this._stepSpeed = parseFloat(String(stepSpeed));
     localStorage.setItem(STEP_SPEED_KEY, String(stepSpeed));
   }
 
@@ -88,13 +108,13 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   nextStep() {
-    if (this.currentTime < this.flightDuration - 1) {
+    if (this.currentTime < this.flightDurationSeconds - 1) {
       this.currentTime += this._step;
     }
   }
 
   jumpToEnd() {
-    this.currentTime = this.flightDuration - 1;
+    this.currentTime = this.flightDurationSeconds - 1;
   }
 
   playButtonClicked(event: any) {
@@ -107,11 +127,19 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   simulateFlight() {
-    if(!this.play || this.currentTime === this.flightDuration - 1)
+    if(!this.play || this.currentTime === this.flightDurationSeconds - 1)
       return;
     setTimeout(() => {
       this.nextStep();
       this.simulateFlight();
     }, this._stepSpeed * 1000)
+  }
+
+  updateSlider() {
+    this.currentTime = this._currentTime;
+    if(this._useSeconds)
+      this._sliderMax = this.flightDurationSeconds - 1;
+    else
+      this._sliderMax = this.flightMessagesNumber -1;
   }
 }
