@@ -6,6 +6,16 @@
   <!-- //#checkboxNumber-->
 </mat-dialog-content>
 
+<br/>
+<mat-form-field appearance="fill">
+  <mat-label>Map View</mat-label>
+  <mat-select [(value)]="_selected">
+    <mat-option *ngFor="let mapView of mapViews" [value]="mapView.value">
+      {{mapView.viewValue}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+
 <mat-dialog-actions>
   <button class="mat-raised-button" (click)="close()">Close</button>
   <button class="mat-raised-button mat-primary" (click)="save()">Save</button>

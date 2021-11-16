@@ -27,7 +27,7 @@ export class InfoComponent implements OnInit, DroneMapWidget {
   fileListChanged(): void {
   }
 
-  update(): void {  //TODO Annika: like this?
+  update(): void {
     let gpsMes = this.globals.gpsMessage;
     let batMes = this.globals.batteryMessage;
     if(!gpsMes || !batMes)

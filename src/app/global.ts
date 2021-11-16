@@ -17,6 +17,9 @@ import {
   providedIn: 'root',
 })
 export class Globals {
+  loadCallback = () => {};
+  finishLoadingCallback = () => {};
+
   private _subscriptions: Set<DroneMapWidget> = new Set();
 
   private _file: File | null = null;
@@ -103,10 +106,12 @@ export class Globals {
     let inst = this;
 
     let jsonFileReader = new FileReader();
-    jsonFileReader.onload = async function () {
+    jsonFileReader.onload = async function () {// TODO refactor to not load whole data into RAM
       if (inst._file === null)
         return;
+      inst.loadCallback();
       let data = JSON.parse(<string>jsonFileReader.result);
+      data = data.sort((a: any, b: any) => a.messageid < b.messageid);
       let gpsData = data.filter((d: any) => d.pktId === 2096);
       let latCol = gpsData.map((a: any) => a.latitude);
       latCol = latCol.filter((l: number) => l !== 0);
@@ -151,7 +156,7 @@ export class Globals {
     this._fileId = file.id;
     this._flightDuration = file.messageCount;
     this._dbFile = file;
-    console.log("selected file: " + file.fileName + " (" + file.id + ")");
+    console.log("_selected file: " + file.fileName + " (" + file.id + ")");
     this.fileChanged();
   }
 
@@ -228,9 +233,7 @@ export class Globals {
     });
     let keys = Object.keys(filteredData);
     let runningImports = 0;
-    // TODO show loading indicator
     keys.forEach(key => {
-      // TODO save all messages
       console.log(filteredData[key][0]);
       if(key !== "2096" && key !== "16" && key !== "1000" && key !== "1710")
         return;
@@ -239,7 +242,8 @@ export class Globals {
         console.log('added ' + filteredData[key].length + ' entries for pktId ' + key);
         if(--runningImports === 0) {
           console.log(new Date());
-          console.log("import completed"); // TODO hide loading indicator
+          console.log("import completed");
+          inst.finishLoadingCallback();
         }
       });
     });

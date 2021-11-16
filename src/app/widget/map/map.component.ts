@@ -14,6 +14,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
   longitude: number = 0;
   latitude: number = 0;
   altitude: number = 0;
+  currentLayer: any;
 
   @Input() mapType: number = 1;
 
@@ -25,69 +26,70 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if(this.longitude === 0 && this.latitude === 0) {
+    if(this.myMap === undefined) {
       this.myMap = L.map('map').setView([49.57384629202841, 11.02728355453469], 20);
-    } else {
-      this.myMap = L.map('map').setView([this.longitude, this.latitude], 20);
     }
+    if(this.currentLayer)
+      this.myMap.removeLayer(this.currentLayer);
     switch (this.mapType) {
       case 2: // Google Street
-        L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+        this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
             maxZoom: 20,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
-          }).addTo(this.myMap);
+          });
         break;
       case 3: // Google Hybrid
-        L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
+        this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
             maxZoom: 20,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
-          }).addTo(this.myMap);
+          });
         break;
       case 4: // Google Satellite
-        L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+        this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
             maxZoom: 20,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
-          }).addTo(this.myMap);
+          });
         break;
       case 5: // Google Terrain
-        L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+        this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
             maxZoom: 20,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
-          }).addTo(this.myMap);
+          });
         break;
-      case 1:
+      case 1: // Open Street Map
       default:
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        this.currentLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
             maxZoom: 20,
             tileSize: 512,
             zoomOffset: -1
-          }).addTo(this.myMap);
+          });
     }
+    this.currentLayer.addTo(this.myMap);
     if(!this.marker) {
       this.marker = L.marker([49.57384629202841, 11.02728355453469]).addTo(this.myMap);
     }
     if(this.longitude === 0 && this.latitude === 0) {
       this.marker.setLatLng(L.latLng([49.57384629202841, 11.02728355453469]));
     } else {
-      this.marker.setLatLng(L.latLng([49.57384629202841, 11.02728355453469]));
+      this.marker.setLatLng(L.latLng([this.longitude, this.latitude]));
     }
   }
 
@@ -101,7 +103,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
 
   fileListChanged(): void { }
 
-  update(): void {  //TODO Annika: like this?
+  update(): void {
     let message = this.globals.gpsMessage;
     if(!message)
       return;

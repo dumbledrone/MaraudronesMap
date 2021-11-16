@@ -1,5 +1,5 @@
 <div id="appGrid">
-  <app-map [mapType]="mapType"></app-map>
+  <app-map [mapType]="_mapType"></app-map>
   <app-time-slider></app-time-slider>
   <app-file-selector></app-file-selector>
   <div id="infos">
@@ -9,3 +9,8 @@
   </div>
   <button id="appearanceButton" (click)="openDialog()">Appearance</button>
 </div>
+<ng-container *ngIf="_showLoadingSpinner">
+  <div id="loadingSpinnerDiv">
+    <mat-spinner></mat-spinner>
+  </div>
+</ng-container>
