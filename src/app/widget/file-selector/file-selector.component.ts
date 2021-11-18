@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import {DbFile, DroneMapWidget, Globals} from "../../global";
+import {DroneMapWidget, Globals} from "../../global";
+import {DbFile} from "../../helpers/DroneWebGuiDatabase";
 
 @Component({
   selector: 'app-file-selector',

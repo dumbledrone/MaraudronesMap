@@ -1,16 +1,13 @@
 import {Component, Injectable} from "@angular/core";
-import * as constants from "./constants";
-import {NgxIndexedDBService} from "ngx-indexed-db";
 import {
-  ALTITUDE, BATTERY_CAP_PERCENT, BATTERY_TEMP, BATTERY_VOLT,
-  DATA_DBNAME,
-  FILE_DBNAME, GPS_OFFSET,
-  LATITUDE,
-  LONGITUDE, MAX_LATITUDE, MAX_LONGITUDE,
-  MESSAGE_FILE_KEY,
-  MESSAGE_MESSAGENUM_KEY, MESSAGE_PKT_ID_KEY, MESSAGE_SECOND_KEY,
-  MIN_LATITUDE, MIN_LONGITUDE, NUM_GPS, PKT_1000_CONTROLLER, PKT_16_ULTRASONIC, PKT_1710_BATTERY_INFO, PKT_2096_GPS
-} from "./constants";
+  BatteryDbMessage,
+  ControllerDbMessage,
+  DbFile, DroneWebGuiDatabase,
+  GpsDbMessage,
+  UltrasonicDbMessage
+} from "./helpers/DroneWebGuiDatabase";
+import Dexie from "dexie";
+import Table = Dexie.Table;
 
 
 @Injectable({
@@ -32,7 +29,7 @@ export class Globals {
   private _uSonicMessage: UltrasonicDbMessage | undefined;
   private _batteryMessage: BatteryDbMessage | undefined;
 
-  private constructor(private dbService: NgxIndexedDBService) {
+  private constructor(private dexieDbService: DroneWebGuiDatabase) {
     this._dbFiles = [];
     this.loadDbFiles();
   }
@@ -126,7 +123,7 @@ export class Globals {
       }// TODO is the for necessary?
       let seconds = timeCol.length;
       console.log(new Date());
-      inst.dbService.add(FILE_DBNAME, [{ // TODO offset
+      inst.dexieDbService.files.add({ // TODO offset
         fileName: inst._file.name,
         messageCount: data.length,
         flightDuration: seconds,
@@ -137,12 +134,12 @@ export class Globals {
         maxLongitude: Math.max(...longCol),
         altitude: 0,
         gpsOffset: 0
-      }]).subscribe((res: any) => {
+      }).then((res: number) => {
         inst.loadDbFiles();
-        inst.handleDataArray(res.id, data);
+        inst.handleDataArray(res, data);
         inst._file = null;
-        console.log('created file id: ' + res.id);
-      });
+        console.log('created file id: ' + res);
+      })
 
     }
     // @ts-ignore
@@ -161,59 +158,62 @@ export class Globals {
   }
 
   public loadDbFiles(): void {
-    this.dbService.getAll(FILE_DBNAME).subscribe(res => {
-      this._dbFiles = DbFile.fromResultArray(res);
-      console.log(this._dbFiles);
-      this.fileListChanged();
-    });
+    let inst = this;
+    this._dbFiles = [];
+    this.dexieDbService.files.toArray().then(arr => inst._dbFiles = arr as DbFile[])
+      .then(() => inst.fileListChanged());
   }
 
   public loadMessagesById(messageId: number) {
     let ct = 0;
-    this.dbService.getAllByIndex(PKT_2096_GPS, MESSAGE_MESSAGENUM_KEY, IDBKeyRange.bound(messageId - 100, messageId)).subscribe(res => {
-      let messages: any[] = res.filter((r: any) => r.fileId === this._dbFile.id);
-      let mes = messages.slice(-1).pop();
-      this._gpsMessage = DbMessage.fromResult(mes) as GpsDbMessage;
+    let inst = this;
+    function onComplete() {
       ct++;
-      if(ct === 4)
-        this.updated();
+      if(ct === 4) {// Update if additional message types are added
+        inst.loadDbFiles();
+        inst.updated();
+      }
+    }
+
+    this.dexieDbService.gps.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._gpsMessage = res.slice(-1).pop();
+      onComplete();
     });
-    this.dbService.getAllByIndex(PKT_1710_BATTERY_INFO, MESSAGE_MESSAGENUM_KEY, IDBKeyRange.bound(messageId - 100, messageId)).subscribe(res => {
-      let messages: any[] = res.filter((r: any) => r.fileId === this._dbFile.id);
-      let mes = messages.slice(-1).pop();
-      this._batteryMessage = DbMessage.fromResult(mes) as BatteryDbMessage;
-      ct++;
-      if(ct === 4)
-        this.updated();
+    this.dexieDbService.battery.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._batteryMessage = res.slice(-1).pop();
+      onComplete();
     });
-    this.dbService.getAllByIndex(PKT_1000_CONTROLLER, MESSAGE_MESSAGENUM_KEY, IDBKeyRange.bound(messageId - 100, messageId)).subscribe(res => {
-      let messages = res.filter((r: any) => r.fileId === this._dbFile.id);
-      let mes = messages.slice(-1).pop();
-      this._controllerMessage = DbMessage.fromResult(mes) as ControllerDbMessage;
-      ct++;
-      if(ct === 4)
-        this.updated();
+    this.dexieDbService.controller.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._controllerMessage = res.slice(-1).pop();
+      onComplete();
     });
-    this.dbService.getAllByIndex(PKT_16_ULTRASONIC, MESSAGE_MESSAGENUM_KEY, IDBKeyRange.bound(messageId - 100, messageId)).subscribe(res => {
-      let messages: any[] = res.filter((r: any) => r.fileId === this._dbFile.id);
-      let mes = messages.slice(-1).pop();
-      this._uSonicMessage = DbMessage.fromResult(mes) as UltrasonicDbMessage;
-      ct++;
-      if(ct === 4)
-        this.updated();
+    this.dexieDbService.ultrasonic.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._uSonicMessage = res.slice(-1).pop();
+      onComplete();
     });
   }
 
   public loadMessagesBySecond(second: number) {
-    this.dbService.getAllByIndex(PKT_2096_GPS, MESSAGE_SECOND_KEY, IDBKeyRange.only(second)).subscribe(res => {
-      console.log(res);
-      let mes = res.find((r: any) => r.fileId === this._dbFile.id);
-      this._gpsMessage = DbMessage.fromResult(mes) as GpsDbMessage;
+    let inst = this;
+    this.dexieDbService.gps.where('[fileId+second]').equals([inst._dbFile.id, second]).first().then(mes => {
+      if(mes === undefined) {
+        console.log('GPS message not found for fileId: ' + inst._dbFile.id + ' , second: ' + second);
+        return;
+      }
+      this._gpsMessage = mes;
       this.loadMessagesById(this._gpsMessage.messageNum);
     });
   }
 
-  private handleDataArray(fileId: number, data: any[]) {
+  private handleDataArray(fileId: number, data: any[]) {// TODO update
     let inst = this;
     let filteredData: any = {};
     let lastTimeStamp = "--";
@@ -233,20 +233,61 @@ export class Globals {
     });
     let keys = Object.keys(filteredData);
     let runningImports = 0;
+    function completeFunc(key: string) {
+      console.log('added ' + filteredData[key].length + ' entries for pktId ' + key);
+      if(--runningImports === 0) {
+        console.log(new Date());
+        console.log("import completed");
+        inst.finishLoadingCallback();
+      }
+    }
     keys.forEach(key => {
-      console.log(filteredData[key][0]);
+      // console.log(filteredData[key][0]);
       if(key !== "2096" && key !== "16" && key !== "1000" && key !== "1710")
         return;
       runningImports++;
-      inst.dbService.bulkAdd(key, filteredData[key]).subscribe(() => {
-        console.log('added ' + filteredData[key].length + ' entries for pktId ' + key);
-        if(--runningImports === 0) {
-          console.log(new Date());
-          console.log("import completed");
-          inst.finishLoadingCallback();
-        }
-      });
+      switch(key) {
+        case "16":
+          bulkAddInChunks(inst.dexieDbService.ultrasonic, filteredData[key], 10000,
+            () => completeFunc(key)).then(() => {});
+          break;
+        case "1000":
+          bulkAddInChunks(inst.dexieDbService.controller, filteredData[key], 10000,
+            () => completeFunc(key)).then(() => {});
+          break;
+        case "1710":
+          bulkAddInChunks(inst.dexieDbService.battery, filteredData[key], 10000,
+            () => completeFunc(key)).then(() => {});
+          break;
+        case "2096":
+          bulkAddInChunks(inst.dexieDbService.gps, filteredData[key], 5000,
+            () => completeFunc(key)).then(() => {});
+          break;
+      }
     });
+  }
+
+    }
+    this.dexieDbService.files.delete(this._fileId).then();
+    this.dexieDbService.gps.where('fileId').equals(this._fileId).delete().then(() => complete());
+    this.dexieDbService.controller.where('fileId').equals(this._fileId).delete().then(() => complete());
+    this.dexieDbService.battery.where('fileId').equals(this._fileId).delete().then(() => complete());
+    this.dexieDbService.ultrasonic.where('fileId').equals(this._fileId).delete().then(() => complete());
+  }
+}
+
+async function bulkAddInChunks (table: Table, objects: any[], chunkSize: number, onComplete: any, pos=0) {
+  await table.bulkAdd(objects.slice(pos, pos + chunkSize));
+  if (objects.length > pos + chunkSize) {
+    await bulkAddInChunks(
+      table,
+      objects,
+      chunkSize,
+      onComplete,
+      pos + chunkSize
+    );
+  } else {
+    onComplete();
   }
 }
 
@@ -255,120 +296,6 @@ export interface DroneMapWidget {
   fileChanged(): void; // Only change file related info, as message will be loaded after this event fired! -> globals.message might be undefined
   fileListChanged(): void;
 
-}
-
-export class DbFile {
-  public fileName: string;
-  public messageCount: number;
-  public flightDuration: number;
-  public id: number;
-  public minLatitude: number;
-  public maxLatitude: number;
-  public minLongitude: number;
-  public maxLongitude: number;
-  public gpsOffset: number;
-
-  constructor(fileName: string, messageCount: number, flightDuration: number, id: number, minLatitude: number,
-              maxLatitude: number, minLongitude: number, maxLongitude: number, gpsOffset: number) {
-    this.fileName = fileName;
-    this.messageCount = messageCount;
-    this.flightDuration = flightDuration;
-    this.id = id;
-    this.minLatitude = minLatitude;
-    this.maxLatitude = maxLatitude;
-    this.minLongitude = minLongitude;
-    this.maxLongitude = maxLongitude;
-    this.gpsOffset = gpsOffset;
-  }
-
-  static fromResultArray(resultArr: any[]): DbFile[] {
-    let arr: DbFile[] = [];
-    resultArr.forEach(r => arr.push(new DbFile(r[0].fileName, r[0].messageCount, r[0].flightDuration, r.id,
-      r[0][MIN_LATITUDE], r[0][MAX_LATITUDE], r[0][MIN_LONGITUDE], r[0][MAX_LONGITUDE], r[0][GPS_OFFSET])));
-    return arr;
-  }
-}
-
-export class DbMessage {
-  id: number;
-  fileId: number;
-  messageNum: number;
-
-  constructor(id: number, fileId: number, messageNum: number){//}, batCapPerc: number, batTemp: number, batVolt: number, numGPS: number) {
-    this.id = id;
-    this.fileId = fileId;
-    this.messageNum = messageNum;
-  }
-
-  static fromResult(result: any): any {
-    if(!result)
-      return new DbMessage(0, 0, 0);
-    switch(result[MESSAGE_PKT_ID_KEY].toString()) {
-      case PKT_2096_GPS:
-        return new GpsDbMessage(result.id, result.fileId, result.messageNum, result.longitude, result.latitude, result.altitude, result.numGPS, result.second);
-      case PKT_16_ULTRASONIC:
-        return new UltrasonicDbMessage(result.id, result.fileId, result.messageNum, result.usonic_h, result.usonic_flag);
-      case PKT_1000_CONTROLLER:
-        return new ControllerDbMessage(result.id, result.fileId, result.messageNum, result.ctrl_pitch, result.ctrl_roll, result.ctrl_yaw, result.ctrl_thr);
-      case PKT_1710_BATTERY_INFO:
-        return new BatteryDbMessage(result.id, result.fileId, result.messageNum, result.cap_per, result.temp);
-    }
-    return new DbMessage(result.id, result.fileId, result.messageNum);
-  }
-}
-
-export class GpsDbMessage extends DbMessage {
-  longitude: number;
-  latitude: number;
-  altitude: number;
-  numGPS: number;
-  second: number;
-
-  constructor(id: number, fileId: number, messageNum: number, longitude: number, latitude: number, altitude: number, numGPS: number, second: number) {
-    super(id, fileId, messageNum);
-    this.longitude = longitude;
-    this.latitude = latitude;
-    this.altitude = altitude;
-    this.numGPS = numGPS;
-    this.second = second;
-  }
-}
-
-export class ControllerDbMessage extends DbMessage {
-  ctrl_pitch: number;
-  ctrl_roll: number;
-  ctrl_yaw: number;
-  ctrl_thr: number;
-
-  constructor(id: number, fileId: number, messageNum: number, ctrl_pitch: number, ctrl_roll: number, ctrl_yaw: number, ctrl_thr: number) {
-    super(id, fileId, messageNum);
-    this.ctrl_pitch = ctrl_pitch;
-    this.ctrl_roll = ctrl_roll;
-    this.ctrl_yaw = ctrl_yaw;
-    this.ctrl_thr = ctrl_thr;
-  }
-}
-
-export class BatteryDbMessage extends DbMessage {
-  cap_per: number;
-  temp: number;
-
-  constructor(id: number, fileId: number, messageNum: number, cap_per: number, temp: number) {
-    super(id, fileId, messageNum);
-    this.cap_per = cap_per;
-    this.temp = temp;
-  }
-}
-
-export class UltrasonicDbMessage extends DbMessage {
-  usonic_h: number;
-  usonic_flag: number;
-
-  constructor(id: number, fileId: number, messageNum: number, usonic_h: number, usonic_flag: number) {
-    super(id, fileId, messageNum);
-    this.usonic_h = usonic_h;
-    this.usonic_flag = usonic_flag;
-  }
 }
 
 function timeStringToSecs(timeString: string) {
