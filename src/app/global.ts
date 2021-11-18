@@ -267,6 +267,13 @@ export class Globals {
     });
   }
 
+  public deleteFile() {
+    let inst = this;
+    let ct = 0;
+    function complete() {
+      ct++;
+      if(ct === 4)// Update if additional message types are added
+        inst.updated();
     }
     this.dexieDbService.files.delete(this._fileId).then();
     this.dexieDbService.gps.where('fileId').equals(this._fileId).delete().then(() => complete());
