@@ -45,6 +45,7 @@ interface IDbFile {
   maxLongitude: number;
   altitude: number;
   gpsOffset: number;
+  track: any[];
 }
 
 export class DbFile {
@@ -59,10 +60,11 @@ export class DbFile {
   public maxLongitude: number;
   public altitude: number;
   public gpsOffset: number;
+  public track: any[];
 
   constructor(fileName: string, messageCount: number, flightDuration: number, startTime: number, id: number,
               minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number, altitude: number,
-              gpsOffset: number) {
+              gpsOffset: number, track: any[]) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.flightDuration = flightDuration;
@@ -74,6 +76,7 @@ export class DbFile {
     this.maxLongitude = maxLongitude;
     this.altitude = altitude;
     this.gpsOffset = gpsOffset;
+    this.track = track;
   }
 }
 
@@ -95,14 +98,21 @@ export class GpsDbMessage extends DbMessage {
   altitude: number;
   numGPS: number;
   second: number;
+  velD: number;
+  velE: number;
+  velN: number;
 
-  constructor(id: number, fileId: number, messageNum: number, longitude: number, latitude: number, altitude: number, numGPS: number, second: number) {
+  constructor(id: number, fileId: number, messageNum: number, longitude: number, latitude: number, altitude: number,
+              numGPS: number, second: number, velD: number, velE: number, velN: number) {
     super(id, fileId, messageNum);
     this.longitude = longitude;
     this.latitude = latitude;
     this.altitude = altitude;
     this.numGPS = numGPS;
     this.second = second;
+    this.velD = velD;
+    this.velE = velE;
+    this.velN = velN;
   }
 }
 

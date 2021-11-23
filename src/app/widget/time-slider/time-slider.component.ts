@@ -27,7 +27,7 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
       this.step = parseInt(step);
     let stepSpeed = localStorage.getItem(STEP_SPEED_KEY);
     if(stepSpeed)
-      this.stepSpeed = parseInt(stepSpeed);
+      this.stepSpeed = parseFloat(stepSpeed);
   }
 
   ngOnInit(): void {
@@ -108,7 +108,7 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   nextStep() {
-    if (this.currentTime < this.flightDurationSeconds - 1) {
+    if (this._currentTime < this._sliderMax - 1) {
       this.currentTime += this._step;
     }
   }
@@ -119,27 +119,34 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
 
   playButtonClicked(event: any) {
     this.play = !this.play;
-    // @ts-ignore
-    document.getElementById("startButton")?.innerText = this.play ? "stop" : "start";
+    this.updateButtonText();
     if(this.play)
       this.simulateFlight();
     console.log("play value: " + this.play)
   }
 
   simulateFlight() {
-    if(!this.play || this.currentTime === this.flightDurationSeconds - 1)
+    if(!this.play || this._currentTime === this._sliderMax) {
+      this.play = false;
+      this.updateButtonText();
       return;
+    }
     setTimeout(() => {
       this.nextStep();
       this.simulateFlight();
     }, this._stepSpeed * 1000)
   }
 
+  updateButtonText() {
+    // @ts-ignore
+    document.getElementById("startButton")?.innerText = this.play ? "stop" : "start";
+  }
+
   updateSlider() {
     this.currentTime = this._currentTime;
     if(this._useSeconds)
-      this._sliderMax = this.flightDurationSeconds - 1;
+      this._sliderMax = this.flightDurationSeconds;
     else
-      this._sliderMax = this.flightMessagesNumber -1;
+      this._sliderMax = this.flightMessagesNumber;
   }
 }

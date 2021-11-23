@@ -8,6 +8,7 @@ import {
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
 import Table = Dexie.Table;
+import {error} from "@angular/compiler/src/util";
 
 
 @Injectable({
@@ -28,6 +29,7 @@ export class Globals {
   private _controllerMessage: ControllerDbMessage | undefined;
   private _uSonicMessage: UltrasonicDbMessage | undefined;
   private _batteryMessage: BatteryDbMessage | undefined;
+  public lineType: LineType = LineType.none;
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
     this._dbFiles = [];
@@ -110,8 +112,12 @@ export class Globals {
       let data = JSON.parse(<string>jsonFileReader.result);
       data = data.sort((a: any, b: any) => a.messageid < b.messageid);
       let gpsData = data.filter((d: any) => d.pktId === 2096);
+      let startIndex = gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0);
       let latCol = gpsData.map((a: any) => a.latitude);
+      console.log("old: " + latCol.length);
+      console.log("index: " + startIndex);
       latCol = latCol.filter((l: number) => l !== 0);
+      console.log("new: " + latCol.length);
       let longCol = gpsData.map((a: any) => a.longitude);
       longCol = longCol.filter((l: number) => l !== 0);
       let timeCol: number[] = Array.from(new Set(gpsData.map((a: any) => timeStringToSecs(a.time))));
@@ -123,23 +129,28 @@ export class Globals {
       }// TODO is the for necessary?
       let seconds = timeCol.length;
       console.log(new Date());
+      let minLat = Math.min(...latCol);
+      let maxLat = Math.max(...latCol);
+      let minLong = Math.min(...longCol);
+      let matLong = Math.max(...longCol);
       inst.dexieDbService.files.add({ // TODO offset
         fileName: inst._file.name,
         messageCount: data.length,
         flightDuration: seconds,
         startTime: timeCol[0],
-        minLatitude: Math.min(...latCol),
-        maxLatitude: Math.max(...latCol),
-        minLongitude: Math.min(...longCol),
-        maxLongitude: Math.max(...longCol),
+        minLatitude: !isFinite(minLat) ? 49.57384629202841 : minLat,
+        maxLatitude: !isFinite(maxLat) ? 49.57384629202841 : maxLat,
+        minLongitude: !isFinite(minLong) ? 11.02728355453469 : minLong,
+        maxLongitude: !isFinite(matLong) ? 11.02728355453469 : matLong,
         altitude: 0,
-        gpsOffset: 0
+        gpsOffset: 0,
+        track: []
       }).then((res: number) => {
         inst.loadDbFiles();
         inst.handleDataArray(res, data);
         inst._file = null;
         console.log('created file id: ' + res);
-      })
+      });
 
     }
     // @ts-ignore
@@ -154,6 +165,8 @@ export class Globals {
     this._flightDuration = file.messageCount;
     this._dbFile = file;
     console.log("_selected file: " + file.fileName + " (" + file.id + ")");
+    // TODO restore this after testing if(this._dbFile.track === undefined || this._dbFile.track.length === 0)
+      this.createTrack();
     this.fileChanged();
   }
 
@@ -281,6 +294,42 @@ export class Globals {
     this.dexieDbService.battery.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.ultrasonic.where('fileId').equals(this._fileId).delete().then(() => complete());
   }
+
+  private createTrack() {
+    let inst = this;
+    this.dexieDbService.gps.toArray().then(gpsMessages => {
+      let vertices: any[] = [];
+      gpsMessages = gpsMessages.filter(g=>g.fileId === inst._dbFile.id);
+      gpsMessages.forEach((mes, ind) => {
+        if((mes.latitude === 0 && mes.longitude === 0) || isNaN(mes.latitude) || isNaN(mes.longitude)) //remove NaN and (0,0)
+          return;
+        vertices.push({lat: mes.latitude, long: mes.longitude, ind: ind, mesId: mes.id, altitude: mes.altitude});
+      });
+      if(vertices.length === 0) {
+        window.alert('There are no gps messages in this file.');
+        inst.dexieDbService.files.update(inst._dbFile.id, {track: []}).then(() => inst.fileChanged());
+        return;
+      }
+      /*
+      //todo maybe: smoothen line
+      let edges: any[] = [];
+      //compute edges
+      let changed: boolean = true;
+      for (let i = 0; i < gpsMessages.length && changed; i++) {
+        changed = false;
+        //compute angle = Steigung m
+        //if angle difference < sthConst delete earlier one --> update edges
+        //if deleted: changed = true;
+        //never delete first
+
+      }
+      //todo maybe take only every fifth
+      //todo maybe finally: set indizes without spaces
+      */
+      inst._dbFile.track = vertices;
+      inst.dexieDbService.files.update(inst._dbFile.id, {track: vertices}).then(() => inst.fileChanged());
+    });
+  }
 }
 
 async function bulkAddInChunks (table: Table, objects: any[], chunkSize: number, onComplete: any, pos=0) {
@@ -309,3 +358,11 @@ function timeStringToSecs(timeString: string) {
   let parts = timeString.split(":").map(x => parseInt(x));
   return parts[0]*24 + parts[1]*60 + parts[2];
 }
+
+export enum LineType {
+  none,
+  time,
+  height
+}
+
+

@@ -1,6 +1,6 @@
 # special marker comments
 `//#checkboxNumber`-comment: this must be adapted when the number of checkboxes in Appearance is changed.
-
+`//colorType`-comment: if another colorType is added, the according info has to be added here
 # DroneWebGui
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.11.

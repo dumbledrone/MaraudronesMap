@@ -6,13 +6,14 @@
   <option value="10">10</option>
   <option value="15">15</option>
 </select><span style="padding-left: 50px;"></span> <label for="stepSpeedSelect">Autoplay speed in seconds: </label><select id="stepSpeedSelect" [(ngModel)]="stepSpeed">
-  <option value="0.25">0.25</option>
-  <option value="0.5">0.5</option>
-  <option value="1">1</option>
-  <option value="3">3</option>
-  <option value="5">5</option>
-  <option value="10">10</option>
-  <option value="15">15</option>
+  <option value="0.1">10x</option>
+  <option value="0.25">4x</option>
+  <option value="0.5">2x</option>
+  <option value="1">1x</option>
+  <option value="2">0.5x</option>
+  <option value="4">0.25x</option>
+  <option value="10">0.1x</option>
+  <option value="20">0.05x</option>
 </select>
   <label style="padding-left: 50px;">Use Seconds<input type="checkbox" id="useSeconds" [(ngModel)]="useSeconds"></label>
   <input type="range" min="0" [step]="step" [max]="_sliderMax" [value]="currentTime" (change)="timeSliderChanged($event)" style="width: 100%">
@@ -20,5 +21,5 @@
     <ng-container *ngIf="useSeconds"><ng-container *ngIf="flightDurationSeconds >= 3600">{{currentTime/3600 | number: '1.0-0'}}:</ng-container>{{(currentTime/60)%60 | number: '2.0-0'}}:{{currentTime%60 | number: '2.0-0'}}</ng-container>
     <ng-container *ngIf="!useSeconds">{{currentTime}}</ng-container>
   </span>
-  <button (click)="jumpToStart()">|<</button><button (click)="previousStep()"><</button> <button (click)="playButtonClicked($event.target)" id="startButton">start</button> <button (click)="nextStep()">></button><button (click)="jumpToEnd()">>|</button>
+  <button (click)="jumpToStart()">|<</button><button (click)="previousStep()"><</button> <button (click)="playButtonClicked($event.target)" id="startButton" [disabled]="_currentTime===_sliderMax">start</button> <button (click)="nextStep()">></button><button (click)="jumpToEnd()">>|</button>
 </div>
