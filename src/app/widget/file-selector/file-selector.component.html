@@ -1,7 +1,7 @@
 <label for="fileInput">File: </label><input type="file" accept="application/json" id="fileInput" (change)="handleFileInput($event)"><br/><button (click)="importFile()" [disabled]="currentFile === undefined || fileAlreadyPresent">Import</button>
 <div style="margin-top: 5px">
   <span>Select File: </span><select (change)="handleFileSelect($event)" id="fileSelect">
-  <option [selected]="fileName === undefined">Select a file...</option>
+  <option [selected]="fileName === undefined" [value]="undefined">Select a file...</option>
   <option *ngFor="let file of availableFiles" [selected]="file.fileName === fileName" [value]="file.id">{{file.fileName}}</option>
-</select>
+</select> <button style="margin-left: 10px" (click)="deleteSelectedFile()" [disabled]="!globals.file">Delete</button>
 </div>

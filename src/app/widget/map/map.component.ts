@@ -113,9 +113,16 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
   }
 
   fileChanged(): void {
-    let file = this.globals.file;
-    this.myMap.flyToBounds(L.latLngBounds(L.latLng(file.minLatitude, file.minLongitude), L.latLng(file.maxLatitude, file.maxLongitude)), {padding: new L.Point(25, 25), maxZoom: this.myMap.getZoom()});
-    this.drawLine();
+    if(this.globals.file) {
+      let file = this.globals.file;
+      this.myMap.flyToBounds(L.latLngBounds(L.latLng(file.minLatitude, file.minLongitude), L.latLng(file.maxLatitude, file.maxLongitude)), {
+        padding: new L.Point(25, 25),
+        maxZoom: this.myMap.getZoom()
+      });
+      this.drawLine();
+    } else {
+      this.geoTrack?.removeFrom(this.myMap);
+    }
   }
 
   fileListChanged(): void { }
@@ -139,6 +146,8 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     return c;
   }
   private drawLine() {
+    if(!this.globals.file)
+      return;
     let inst = this;
     //remove earlier track
     this.geoTrack?.removeFrom(this.myMap);
@@ -185,6 +194,8 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
    */
   //colorType: rules according to colorType must be implement if colorTypes are added
   private editAccordingToType(type:LineType, trackGeoJson: any[]) {
+    if(!this.globals.file)
+      return;
     //creat colorScale according to coloring type
     let colorScale: typeof ColorScale;
     switch (type) {

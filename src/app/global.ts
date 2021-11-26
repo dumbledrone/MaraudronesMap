@@ -3,7 +3,7 @@ import {
   BatteryDbMessage,
   ControllerDbMessage,
   DbFile, DroneWebGuiDatabase,
-  GpsDbMessage,
+  GpsDbMessage, OsdGeneralDataDbMessage,
   UltrasonicDbMessage
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
@@ -22,13 +22,14 @@ export class Globals {
 
   private _file: File | null = null;
   private _fileId: number = -1;
-  private _dbFile!: DbFile;
+  private _dbFile: DbFile | null = null;
   private _flightDuration: number = 0;
   private _dbFiles: DbFile[];
   private _gpsMessage: GpsDbMessage | undefined;
   private _controllerMessage: ControllerDbMessage | undefined;
   private _uSonicMessage: UltrasonicDbMessage | undefined;
   private _batteryMessage: BatteryDbMessage | undefined;
+  private _osdGeneralMessage: OsdGeneralDataDbMessage | undefined;
   public lineType: LineType = LineType.none;
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
@@ -93,9 +94,15 @@ export class Globals {
     return this._controllerMessage;
   }
 
-  set file(file: DbFile) {}
+  set osdGeneralMessage(osdGeneralMessage: OsdGeneralDataDbMessage | undefined) {}
 
-  public get file(): DbFile {
+  public get osdGeneralMessage(): OsdGeneralDataDbMessage | undefined {
+    return this._osdGeneralMessage;
+  }
+
+  set file(file: DbFile | null) {}
+
+  public get file(): DbFile | null {
     return this._dbFile;
   }
 
@@ -105,14 +112,14 @@ export class Globals {
     let inst = this;
 
     let jsonFileReader = new FileReader();
-    jsonFileReader.onload = async function () {// TODO refactor to not load whole data into RAM
+    jsonFileReader.onload = async function () {// TODO refactor to not load whole data into RAM?
       if (inst._file === null)
         return;
       inst.loadCallback();
       let data = JSON.parse(<string>jsonFileReader.result);
       data = data.sort((a: any, b: any) => a.messageid < b.messageid);
       let gpsData = data.filter((d: any) => d.pktId === 2096);
-      let startIndex = gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0);
+      let startIndex = gpsData.indexOf(gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0));
       let latCol = gpsData.map((a: any) => a.latitude);
       console.log("old: " + latCol.length);
       console.log("index: " + startIndex);
@@ -159,13 +166,14 @@ export class Globals {
 
   public selectFile(fileId: number) {
     let file = this.availableFiles.find(a => a.id === fileId);
-    if(file === undefined)
+    if(file === undefined) {
+      // TODO set file to null & send info!
       return;
+    }
     this._fileId = file.id;
     this._flightDuration = file.messageCount;
     this._dbFile = file;
-    console.log("_selected file: " + file.fileName + " (" + file.id + ")");
-    // TODO restore this after testing if(this._dbFile.track === undefined || this._dbFile.track.length === 0)
+    if(this._dbFile.track === undefined || this._dbFile.track.length === 0)
       this.createTrack();
     this.fileChanged();
   }
@@ -178,6 +186,8 @@ export class Globals {
   }
 
   public loadMessagesById(messageId: number) {
+    if(!this._dbFile)
+      return;
     let ct = 0;
     let inst = this;
     function onComplete() {
@@ -212,13 +222,22 @@ export class Globals {
       this._uSonicMessage = res.slice(-1).pop();
       onComplete();
     });
+    this.dexieDbService.osdGeneral.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._osdGeneralMessage = res.slice(-1).pop();
+      onComplete();
+    });
   }
 
   public loadMessagesBySecond(second: number) {
     let inst = this;
+    if(!inst._dbFile)
+      return;
     this.dexieDbService.gps.where('[fileId+second]').equals([inst._dbFile.id, second]).first().then(mes => {
       if(mes === undefined) {
-        console.log('GPS message not found for fileId: ' + inst._dbFile.id + ' , second: ' + second);
+        if(inst._dbFile)
+          console.log('GPS message not found for fileId: ' + inst._dbFile.id + ' , second: ' + second);
         return;
       }
       this._gpsMessage = mes;
@@ -254,9 +273,10 @@ export class Globals {
         inst.finishLoadingCallback();
       }
     }
+    let supportedKeys = ["2096", "16", "1000", "1710", "12", "1700"];
     keys.forEach(key => {
       // console.log(filteredData[key][0]);
-      if(key !== "2096" && key !== "16" && key !== "1000" && key !== "1710")
+      if(!supportedKeys.includes(key))
         return;
       runningImports++;
       switch(key) {
@@ -276,6 +296,14 @@ export class Globals {
           bulkAddInChunks(inst.dexieDbService.gps, filteredData[key], 5000,
             () => completeFunc(key)).then(() => {});
           break;
+        case "12":
+          bulkAddInChunks(inst.dexieDbService.osdGeneral, filteredData[key], 5000,
+            () => completeFunc(key)).then(() => {});
+          break;
+        case "1700":
+          bulkAddInChunks(inst.dexieDbService.rcDebug, filteredData[key], 5000,
+            () => completeFunc(key)).then(() => {});
+          break;
       }
     });
   }
@@ -285,21 +313,30 @@ export class Globals {
     let ct = 0;
     function complete() {
       ct++;
-      if(ct === 4)// Update if additional message types are added
+      if(ct === 6) {// Update if additional message types are added
+        inst._dbFile = null;
         inst.updated();
+        inst.loadDbFiles();
+        inst.finishLoadingCallback();
+      }
     }
+    inst.loadCallback();
     this.dexieDbService.files.delete(this._fileId).then();
     this.dexieDbService.gps.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.controller.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.battery.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.ultrasonic.where('fileId').equals(this._fileId).delete().then(() => complete());
+    this.dexieDbService.osdGeneral.where('fileId').equals(this._fileId).delete().then(() => complete());
+    this.dexieDbService.rcDebug.where('fileId').equals(this._fileId).delete().then(() => complete());
   }
 
   private createTrack() {
     let inst = this;
     this.dexieDbService.gps.toArray().then(gpsMessages => {
+      if(!inst._dbFile)
+        return;
       let vertices: any[] = [];
-      gpsMessages = gpsMessages.filter(g=>g.fileId === inst._dbFile.id);
+      gpsMessages = gpsMessages.filter(g=>g.fileId === inst._dbFile?.id);
       gpsMessages.forEach((mes, ind) => {
         if((mes.latitude === 0 && mes.longitude === 0) || isNaN(mes.latitude) || isNaN(mes.longitude)) //remove NaN and (0,0)
           return;

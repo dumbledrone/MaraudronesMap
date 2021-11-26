@@ -38,8 +38,13 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
 
   fileChanged(): void {
     this.currentTime = 0;
-    this.flightDurationSeconds = this.globals.file.flightDuration;
-    this.flightMessagesNumber = this.globals.file.messageCount;
+    if(this.globals.file) {
+      this.flightDurationSeconds = this.globals.file.flightDuration;
+      this.flightMessagesNumber = this.globals.file.messageCount;
+    } else {
+      this.flightDurationSeconds = 0;
+      this.flightMessagesNumber = 0;
+    }
     this.updateSlider();// TODO set offset
   }
   fileListChanged(): void { }

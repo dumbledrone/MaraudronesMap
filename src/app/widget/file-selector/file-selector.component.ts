@@ -13,7 +13,7 @@ export class FileSelectorComponent implements OnInit, DroneMapWidget {
   currentFile: File | undefined;
   fileAlreadyPresent: boolean = false;
 
-  constructor(protected globals: Globals) {
+  constructor(public globals: Globals) {
     globals.subscribe(this);
     this.availableFiles = this.globals.availableFiles;
   }
@@ -53,5 +53,11 @@ export class FileSelectorComponent implements OnInit, DroneMapWidget {
   fileListChanged(): void {
     this.availableFiles = this.globals.availableFiles;
     this.fileAlreadyPresent = this.availableFiles.find(a => a.fileName === this.currentFile?.name) !== undefined;
+  }
+
+  deleteSelectedFile() {
+    if(this.globals.file && window.confirm("Do you really want to delete the file '" + this.globals.file.fileName + "'")) {
+      this.globals.deleteFile();
+    }
   }
 }
