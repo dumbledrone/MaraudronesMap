@@ -9,9 +9,18 @@
 <br/>
 <mat-form-field appearance="fill">
   <mat-label>Map View</mat-label>
-  <mat-select [(value)]="_selected">
+  <mat-select [(value)]="_selectedMap">
     <mat-option *ngFor="let mapView of mapViews" [value]="mapView.value">
       {{mapView.viewValue}}
+    </mat-option>
+  </mat-select>
+</mat-form-field>
+<br/>
+<mat-form-field appearance="fill">
+  <mat-label>Line Color</mat-label>
+  <mat-select [(value)]="_selectedColor">
+    <mat-option *ngFor="let lineColor of lineColors" [value]="lineColor.value">
+      {{lineColor.viewValue}}
     </mat-option>
   </mat-select>
 </mat-form-field>

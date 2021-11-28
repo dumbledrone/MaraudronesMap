@@ -4,6 +4,7 @@ import * as L from "leaflet";
 import {GeoJSON, LatLng} from "leaflet";
 import {RotatedMarker} from "leaflet-marker-rotation";
 
+
 // @ts-ignore
 const ColorScale = require("color-scales");
 
@@ -136,6 +137,8 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     this.marker.setLatLng(L.latLng(this.latitude, this.longitude));// TODO set correct rotation
     // TODO set popup data...
     // marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
+    this.drawLine();
+    //TODO Annika update createTrack
   }
 
 

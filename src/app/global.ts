@@ -347,12 +347,17 @@ export class Globals {
         inst.dexieDbService.files.update(inst._dbFile.id, {track: []}).then(() => inst.fileChanged());
         return;
       }
-      /*
-      //todo maybe: smoothen line
+      this.smoothTrack(vertices, gpsMessages.length);
+      inst._dbFile.track = vertices;
+      inst.dexieDbService.files.update(inst._dbFile.id, {track: vertices}).then(() => inst.fileChanged());
+    });
+  }
+  smoothTrack(vertices: any[], gpsMessagesLength: number){
+      //maybeTodo: smoothen line
       let edges: any[] = [];
       //compute edges
       let changed: boolean = true;
-      for (let i = 0; i < gpsMessages.length && changed; i++) {
+      for (let i = 0; i < gpsMessagesLength && changed; i++) {
         changed = false;
         //compute angle = Steigung m
         //if angle difference < sthConst delete earlier one --> update edges
@@ -360,12 +365,14 @@ export class Globals {
         //never delete first
 
       }
-      //todo maybe take only every fifth
-      //todo maybe finally: set indizes without spaces
-      */
-      inst._dbFile.track = vertices;
-      inst.dexieDbService.files.update(inst._dbFile.id, {track: vertices}).then(() => inst.fileChanged());
-    });
+      //maybeTodo maybe take only every fifth
+      //maybeTodo finally: set indizes without spaces
+
+  }
+
+  set linetype(linetypeNew:LineType) {
+    this.lineType = linetypeNew;
+    this.updated();
   }
 }
 

@@ -1,7 +1,8 @@
 import {Component, NgModule, OnInit} from '@angular/core';
 import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {AppearenceDialogueComponent} from "./helpers/appearence-dialogue/appearence-dialogue.component";
-import {Globals} from "./global";
+import {Globals, LineType} from "./global";
+import {global} from "@angular/compiler/src/util";
 
 @Component({
   selector: 'app-root',
@@ -11,6 +12,7 @@ import {Globals} from "./global";
 export class AppComponent implements OnInit {
   title = 'drone-web-gui';
   _mapType!: number;
+  _lineColor!: number;
   _showLoadingSpinner = false;
   private _localStorageValues : boolean[];
 
@@ -19,10 +21,12 @@ export class AppComponent implements OnInit {
     this._localStorageValues=[];
     globals.loadCallback = () => {inst._showLoadingSpinner = true};
     globals.finishLoadingCallback = () => {inst._showLoadingSpinner = false};
+
   }
 
   ngOnInit(): void {
     this.mapType = 1;
+    this.lineColor = 0;
     this.getLocalStorageValues();
     this.updateInfoView();
   }
@@ -36,16 +40,20 @@ export class AppComponent implements OnInit {
     dialogConfig.data = {
       id: 1,
       test: this._localStorageValues,
-      mapType: this._mapType
+      mapType: this._mapType,
+      lineType: this._lineColor,  //TODO Annika: when appearance is changed, draw track again
     }
     const dialogRef = this.dialog.open(AppearenceDialogueComponent, dialogConfig);
 
     dialogRef.afterClosed().subscribe(data => {
+      if(data === undefined) // -> button "close" used
+        return;
       for (let i = 0; i < 2; i++) {    //#checkboxNumber
         localStorage.setItem("checkbox" + i, data["checkbox"+i] ? "true": "false");
         this._localStorageValues[i] = data["checkbox"+i];
       }
       localStorage.setItem("mapView", String(data.selectedMap));
+      localStorage.setItem("lineColor", String(data.selectedColor));
       this.updateInfoView();
     });
   }
@@ -58,6 +66,8 @@ export class AppComponent implements OnInit {
     document.getElementById("infos1")?.style.display = this._localStorageValues[1] ? "block" : "none";
     let tmp = localStorage.getItem("mapView");
     this.mapType = tmp===null? 1 : parseInt(tmp);
+    tmp = localStorage.getItem("lineColor");
+    this.lineColor = tmp===null? 0 : parseInt(tmp);
   }
 
   getLocalStorageValues() {
@@ -72,6 +82,12 @@ export class AppComponent implements OnInit {
       this.mapType = 1;
       localStorage.setItem("mapView", String(1));
     }
+    tmp = localStorage.getItem("lineColor");
+    this.lineColor = tmp===null? 0 : parseInt(tmp);
+    if(isNaN(this.lineColor)) {
+      this.lineColor = 0;
+      localStorage.setItem("lineColor", String(0));
+    }
   }
 
   get mapType() {
@@ -80,5 +96,11 @@ export class AppComponent implements OnInit {
 
   set mapType(val: number) {
     this._mapType = val;
+  }
+  get lineColor() {
+    return this._lineColor;
+  }
+  set lineColor(val: number) {
+    this._lineColor = val;
   }
 }

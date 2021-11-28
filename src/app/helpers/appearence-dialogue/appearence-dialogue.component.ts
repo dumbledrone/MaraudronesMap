@@ -14,10 +14,13 @@ export class AppearenceDialogueComponent implements OnInit {
   form: FormGroup;
   checkboxValues: boolean[];
   mapViews: MapView[];
-  _selected!:string;
+  lineColors: LineColor[];
+  _selectedMap!:string;
+  _selectedColor!:string;
 
   constructor(private fb: FormBuilder, private dialogRef: MatDialogRef<AppearenceDialogueComponent>, @Inject(MAT_DIALOG_DATA) data: any) {
-    this._selected = String(data.mapType);
+    this._selectedMap = String(data.mapType);
+    this._selectedColor = String(data.lineType);
     this.checkboxValues = [];
     for (let i = 0; i < data.test.length; i++) {
       this.checkboxValues[i] = data.test[i];
@@ -35,26 +38,39 @@ export class AppearenceDialogueComponent implements OnInit {
       {value: '4', viewValue: 'google Satellite Map'},
       {value: '5', viewValue: 'google Terrain Map'},
     ];
+    this.lineColors = [
+      {value: '0', viewValue: 'no coloring'},
+      {value: '1', viewValue: 'course of time'},
+      {value: '2', viewValue: 'height'},
+    ];
   }
 
   ngOnInit(): void {}
 
   save(): void {
-    this.form.value.selectedMap = +this.selected;
+    this.form.value.selectedMap = +this.selectedMap;
+    this.form.value.selectedColor = +this.selectedColor;
     this.dialogRef.close(this.form.value)
   }
 
   close(): void {
     this.dialogRef.close();
   }
-  get selected() {
-    return this._selected;
+  get selectedMap() {
+    return this._selectedMap;
+  }
+  get selectedColor() {
+    return this._selectedColor;
   }
 }
 
 
 
 interface MapView {
+  value: string;
+  viewValue: string;
+}
+interface LineColor {
   value: string;
   viewValue: string;
 }
