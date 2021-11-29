@@ -30,7 +30,7 @@ export class Globals {
   private _uSonicMessage: UltrasonicDbMessage | undefined;
   private _batteryMessage: BatteryDbMessage | undefined;
   private _osdGeneralMessage: OsdGeneralDataDbMessage | undefined;
-  public lineType: LineType = LineType.none;
+  private _lineType: LineType = LineType.none;
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
     this._dbFiles = [];
@@ -370,9 +370,13 @@ export class Globals {
 
   }
 
-  set linetype(linetypeNew:LineType) {
-    this.lineType = linetypeNew;
+  set lineType(linetypeNew:LineType) {
+    this._lineType = linetypeNew;
     this.updated();
+  }
+
+  get lineType() {
+    return this._lineType;
   }
 }
 

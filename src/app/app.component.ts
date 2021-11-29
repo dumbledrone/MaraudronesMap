@@ -12,11 +12,10 @@ import {global} from "@angular/compiler/src/util";
 export class AppComponent implements OnInit {
   title = 'drone-web-gui';
   _mapType!: number;
-  _lineColor!: number;
   _showLoadingSpinner = false;
   private _localStorageValues : boolean[];
 
-  constructor(private dialog:MatDialog, globals: Globals) {
+  constructor(private dialog:MatDialog, private globals: Globals) {
     let inst = this;
     this._localStorageValues=[];
     globals.loadCallback = () => {inst._showLoadingSpinner = true};
@@ -26,12 +25,11 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.mapType = 1;
-    this.lineColor = 0;
     this.getLocalStorageValues();
     this.updateInfoView();
   }
 
-  openDialog() {  //TODO select openstreetmap in advance
+  openDialog() {
     const dialogConfig = new MatDialogConfig();
 
     dialogConfig.disableClose = true;
@@ -41,7 +39,7 @@ export class AppComponent implements OnInit {
       id: 1,
       test: this._localStorageValues,
       mapType: this._mapType,
-      lineType: this._lineColor,  //TODO Annika: when appearance is changed, draw track again
+      lineType: this.globals.lineType,
     }
     const dialogRef = this.dialog.open(AppearenceDialogueComponent, dialogConfig);
 
@@ -67,7 +65,7 @@ export class AppComponent implements OnInit {
     let tmp = localStorage.getItem("mapView");
     this.mapType = tmp===null? 1 : parseInt(tmp);
     tmp = localStorage.getItem("lineColor");
-    this.lineColor = tmp===null? 0 : parseInt(tmp);
+    this.globals.lineType = tmp===null? 0 : parseInt(tmp);
   }
 
   getLocalStorageValues() {
@@ -83,9 +81,9 @@ export class AppComponent implements OnInit {
       localStorage.setItem("mapView", String(1));
     }
     tmp = localStorage.getItem("lineColor");
-    this.lineColor = tmp===null? 0 : parseInt(tmp);
-    if(isNaN(this.lineColor)) {
-      this.lineColor = 0;
+    this.globals.lineType = tmp===null? 0 : parseInt(tmp);
+    if(isNaN(this.globals.lineType)) {
+      this.globals.lineType = 0;
       localStorage.setItem("lineColor", String(0));
     }
   }
@@ -96,11 +94,5 @@ export class AppComponent implements OnInit {
 
   set mapType(val: number) {
     this._mapType = val;
-  }
-  get lineColor() {
-    return this._lineColor;
-  }
-  set lineColor(val: number) {
-    this._lineColor = val;
   }
 }

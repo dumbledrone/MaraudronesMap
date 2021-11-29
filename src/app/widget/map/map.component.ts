@@ -138,7 +138,6 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     // TODO set popup data...
     // marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
     this.drawLine();
-    //TODO Annika update createTrack
   }
 
 

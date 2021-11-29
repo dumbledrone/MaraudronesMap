@@ -8,8 +8,8 @@ import {DbFile} from "../../helpers/DroneWebGuiDatabase";
   styleUrls: ['./controller-status.component.css']
 })
 export class ControllerStatusComponent implements OnInit, DroneMapWidget {
-  readonly canvas_width:number = 400; //TODO use var in html
-  readonly canvas_height: number = this.canvas_width/2; //TODO use var in html
+  readonly canvas_width:number = 400;
+  readonly canvas_height: number = this.canvas_width/2;
   readonly middle_left: number = 0.25*this.canvas_width;
   readonly middle_right: number = 0.75*this.canvas_width;
   readonly middle_height: number = 0.5*this.canvas_height;
