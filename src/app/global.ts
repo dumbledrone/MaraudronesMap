@@ -3,7 +3,7 @@ import {
   BatteryDbMessage,
   ControllerDbMessage,
   DbFile, DroneWebGuiDatabase,
-  GpsDbMessage, OsdGeneralDataDbMessage,
+  GpsDbMessage, ImuAttiDbMessage, OsdGeneralDataDbMessage,
   UltrasonicDbMessage
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
@@ -30,6 +30,7 @@ export class Globals {
   private _uSonicMessage: UltrasonicDbMessage | undefined;
   private _batteryMessage: BatteryDbMessage | undefined;
   private _osdGeneralMessage: OsdGeneralDataDbMessage | undefined;
+  private _imuAttiMessage: ImuAttiDbMessage | undefined;
   private _lineType: LineType = LineType.none;
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
@@ -98,6 +99,12 @@ export class Globals {
 
   public get osdGeneralMessage(): OsdGeneralDataDbMessage | undefined {
     return this._osdGeneralMessage;
+  }
+
+  set imuAttiMessage(imuAttiMessage: ImuAttiDbMessage | undefined) {}
+
+  public get imuAttiMessage(): ImuAttiDbMessage | undefined {
+    return this._imuAttiMessage;
   }
 
   set file(file: DbFile | null) {}
@@ -192,7 +199,7 @@ export class Globals {
     let inst = this;
     function onComplete() {
       ct++;
-      if(ct === 4) {// Update if additional message types are added
+      if(ct === 6) {// Update if additional message types are added
         inst.loadDbFiles();
         inst.updated();
       }
@@ -226,6 +233,12 @@ export class Globals {
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._osdGeneralMessage = res.slice(-1).pop();
+      onComplete();
+    });
+    this.dexieDbService.imuAtti.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._imuAttiMessage = res.slice(-1).pop();
       onComplete();
     });
   }
@@ -273,7 +286,7 @@ export class Globals {
         inst.finishLoadingCallback();
       }
     }
-    let supportedKeys = ["2096", "16", "1000", "1710", "12", "1700"];
+    let supportedKeys = ["2096", "16", "1000", "1710", "12", "1700", "2048"];
     keys.forEach(key => {
       // console.log(filteredData[key][0]);
       if(!supportedKeys.includes(key))
@@ -304,6 +317,10 @@ export class Globals {
           bulkAddInChunks(inst.dexieDbService.rcDebug, filteredData[key], 5000,
             () => completeFunc(key)).then(() => {});
           break;
+        case "2048":
+          bulkAddInChunks(inst.dexieDbService.imuAtti, filteredData[key], 5000,
+            () => completeFunc(key)).then(() => {});
+          break;
       }
     });
   }
@@ -328,6 +345,7 @@ export class Globals {
     this.dexieDbService.ultrasonic.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.osdGeneral.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.rcDebug.where('fileId').equals(this._fileId).delete().then(() => complete());
+    this.dexieDbService.imuAtti.where('fileId').equals(this._fileId).delete().then(() => complete());
   }
 
   private createTrack() {

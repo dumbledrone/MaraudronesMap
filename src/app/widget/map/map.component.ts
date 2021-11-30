@@ -14,17 +14,19 @@ const ColorScale = require("color-scales");
   styleUrls: ['./map.component.css']
 })
 export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
+  static MAX_ZOOM = 23;
 
   longitude: number = 0;
   latitude: number = 0;
   altitude: number = 0;
+  orientation: number = 0;
   currentLayer: any;
-  geoTrack: GeoJSON |undefined;
+  geoTrack: GeoJSON | undefined;
 
   @Input() mapType: number = 1;
 
   myMap!: L.Map;
-  marker!: L.Marker;
+  marker!: RotatedMarker;
 
   constructor(private globals: Globals) {
     this.globals.subscribe(this);
@@ -41,7 +43,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
-            maxZoom: 20,
+            maxZoom: MapComponent.MAX_ZOOM,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
@@ -51,7 +53,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
-            maxZoom: 20,
+            maxZoom: MapComponent.MAX_ZOOM,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
@@ -61,7 +63,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
-            maxZoom: 20,
+            maxZoom: MapComponent.MAX_ZOOM,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
@@ -71,7 +73,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
-            maxZoom: 20,
+            maxZoom: MapComponent.MAX_ZOOM,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
@@ -82,7 +84,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         this.currentLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 20,
+            maxZoom: MapComponent.MAX_ZOOM,
             tileSize: 512,
             zoomOffset: -1
           });
@@ -118,7 +120,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
       let file = this.globals.file;
       this.myMap.flyToBounds(L.latLngBounds(L.latLng(file.minLatitude, file.minLongitude), L.latLng(file.maxLatitude, file.maxLongitude)), {
         padding: new L.Point(25, 25),
-        maxZoom: this.myMap.getZoom()
+        maxZoom: MapComponent.MAX_ZOOM
       });
       this.drawLine();
     } else {
@@ -130,11 +132,20 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
 
   update(): void {
     let message = this.globals.gpsMessage;
-    if(!message)
+    if(!message) {
+      this.marker?.setLatLng(L.latLng([49.57384629202841, 11.02728355453469]));
       return;
+    }
     this.longitude = message.longitude;
     this.latitude = message.latitude;
-    this.marker.setLatLng(L.latLng(this.latitude, this.longitude));// TODO set correct rotation
+    this.marker.setLatLng(L.latLng(this.latitude, this.longitude));
+    let imuAttiMessage = this.globals.imuAttiMessage
+    if (imuAttiMessage)
+      this.orientation = (Math.atan2(imuAttiMessage.magX, imuAttiMessage.magY) * 180 / Math.PI) -90;
+    else
+      this.orientation = 0;
+    console.log(this.orientation);
+    this.marker.setRotationAngle(this.orientation);
     // TODO set popup data...
     // marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();
     this.drawLine();

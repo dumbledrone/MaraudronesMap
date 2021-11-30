@@ -10,6 +10,7 @@ export class DroneWebGuiDatabase extends Dexie {
   ultrasonic: Dexie.Table<UltrasonicDbMessage, number>;
   osdGeneral: Dexie.Table<OsdGeneralDataDbMessage, number>;
   rcDebug: Dexie.Table<RcDebugInfoDbMessage, number>;
+  imuAtti: Dexie.Table<ImuAttiDbMessage, number>;
 
   constructor () {
     super("DroneWebGuiDatabase");
@@ -21,6 +22,7 @@ export class DroneWebGuiDatabase extends Dexie {
       ultrasonic: '++id, fileId, [fileId+messageNum]',
       osdGeneral: '++id, fileId, [fileId+messageNum]',
       rcDebug: '++id, fileId, [fileId+messageNum]',
+      imuAttiDbMessage: '++id, fileId, [fileId+messageNum]',
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -38,6 +40,8 @@ export class DroneWebGuiDatabase extends Dexie {
     this.osdGeneral.mapToClass(OsdGeneralDataDbMessage);
     this.rcDebug = this.table("rcDebug");
     this.rcDebug.mapToClass(RcDebugInfoDbMessage);
+    this.imuAtti = this.table("imuAttiDbMessage");
+    this.imuAtti.mapToClass(ImuAttiDbMessage);
   }
 }
 
@@ -267,5 +271,87 @@ export class RcDebugInfoDbMessage extends DbMessage  {
     this.arm_status = arm_status;
     this.wifi_en = wifi_en;
     this.in_wifi = in_wifi;
+  }
+}
+
+export class ImuAttiDbMessage extends DbMessage {
+  longRad: number;
+  latRad: number;
+  longitudeDegrees: number;
+  latitudeDegrees: number;
+  baroPress: number;
+  accelX: number;
+  accelY: number;
+  accelZ: number;
+  gyroX: number;
+  gyroY: number;
+  gyroZ: number;
+  baroAlti: number;
+  quatW: number;
+  quatX: number;
+  quatY: number;
+  quatZ: number;
+  ag_X: number;
+  ag_Y: number;
+  ag_Z: number;
+  velN: number;
+  velE: number;
+  velD: number;
+  gb_X: number;
+  gb_Y: number;
+  gb_Z: number;
+  magX: number;
+  magY: number;
+  magZ: number;
+  imuTemp: number;
+  ty: number;
+  tz: number;
+  sensor_stat: number;
+  filter_stat: number;
+  numSats: number;
+  atti_cnt: number;
+
+  constructor(id: number, fileId: number, messageNum: number, longRad: number, latRad: number, longitudeDegrees: number,
+              latitudeDegrees: number, baroPress: number, accelX: number, accelY: number, accelZ: number, gyroX: number,
+              gyroY: number, gyroZ: number, baroAlti: number, quatW: number, quatX: number, quatY: number, quatZ: number,
+              ag_X: number, ag_Y: number, ag_Z: number, velN: number, velE: number, velD: number, gb_X: number,
+              gb_Y: number, gb_Z: number, magX: number, magY: number, magZ: number, imuTemp: number, ty: number,
+              tz: number, sensor_stat: number, filter_stat: number, numSats: number, atti_cnt: number) {
+    super(id, fileId, messageNum);
+    this.longRad = longRad;
+    this.latRad = latRad;
+    this.longitudeDegrees = longitudeDegrees;
+    this.latitudeDegrees = latitudeDegrees;
+    this.baroPress = baroPress;
+    this.accelX = accelX;
+    this.accelY = accelY;
+    this.accelZ = accelZ;
+    this.gyroX = gyroX;
+    this.gyroY = gyroY;
+    this.gyroZ = gyroZ;
+    this.baroAlti = baroAlti;
+    this.quatW = quatW;
+    this.quatX = quatX;
+    this.quatY = quatY;
+    this.quatZ = quatZ;
+    this.ag_X = ag_X;
+    this.ag_Y = ag_Y;
+    this.ag_Z = ag_Z;
+    this.velN = velN;
+    this.velE = velE;
+    this.velD = velD;
+    this.gb_X = gb_X;
+    this.gb_Y = gb_Y;
+    this.gb_Z = gb_Z;
+    this.magX = magX;
+    this.magY = magY;
+    this.magZ = magZ;
+    this.imuTemp = imuTemp;
+    this.ty = ty;
+    this.tz = tz;
+    this.sensor_stat = sensor_stat;
+    this.filter_stat = filter_stat;
+    this.numSats = numSats;
+    this.atti_cnt = atti_cnt;
   }
 }
