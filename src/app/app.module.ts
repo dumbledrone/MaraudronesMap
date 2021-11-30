@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MapComponent } from './widget/map/map.component';
 import { InfoComponent } from './widget/info/info.component';
+import { AnomalyComponent } from './widget/anomaly/anomaly.component';
 import { ControllerStatusComponent } from './widget/controller-status/controller-status.component';
 import { TimeSliderComponent } from './widget/time-slider/time-slider.component';
 import { FileSelectorComponent } from './widget/file-selector/file-selector.component';
@@ -30,7 +31,8 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
     ControllerStatusComponent,
     TimeSliderComponent,
     FileSelectorComponent,
-    AppearenceDialogueComponent
+    AppearenceDialogueComponent,
+    AnomalyComponent
   ],
   imports: [
     BrowserModule,
