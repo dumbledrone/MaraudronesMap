@@ -12,6 +12,7 @@ const STEP_SPEED_KEY = "stepSpeed";
 export class TimeSliderComponent implements OnInit, DroneMapWidget {
   flightDurationSeconds: number = 0;
   flightMessagesNumber: number = 0;
+  _gpsOffset: number = 0;
   _currentTime: number = 0;
   _step: number = 1;
   _stepSpeed: number = 1;
@@ -37,15 +38,17 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   fileChanged(): void {
-    this.currentTime = 0;
     if(this.globals.file) {
-      this.flightDurationSeconds = this.globals.file.flightDuration;
+      this.flightDurationSeconds = this.globals.file.fileDuration;
       this.flightMessagesNumber = this.globals.file.messageCount;
+      this._gpsOffset = this.globals.file.gpsOffset;
     } else {
       this.flightDurationSeconds = 0;
       this.flightMessagesNumber = 0;
+      this._gpsOffset = 0;
     }
-    this.updateSlider();// TODO set offset
+    this.currentTime = this._gpsOffset;
+    this.updateSlider();
   }
   fileListChanged(): void { }
 
@@ -131,7 +134,7 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   simulateFlight() {
-    if(!this.play || this._currentTime === this._sliderMax) {
+    if(!this.play || this._currentTime >= this._sliderMax - 1) {
       this.play = false;
       this.updateButtonText();
       return;
@@ -149,9 +152,16 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
 
   updateSlider() {
     this.currentTime = this._currentTime;
-    if(this._useSeconds)
+    if(this._useSeconds) {
       this._sliderMax = this.flightDurationSeconds;
-    else
+    } else
       this._sliderMax = this.flightMessagesNumber;
+  }
+
+  floor(val: number, digits: number) {
+    let floored = Math.floor(val);
+    if(floored < 10)
+      return '0'+floored;
+    return floored;
   }
 }

@@ -9,6 +9,8 @@ import {
 import Dexie from "dexie";
 import Table = Dexie.Table;
 import {error} from "@angular/compiler/src/util";
+import {DomEvent} from "leaflet";
+import off = DomEvent.off;
 
 
 @Injectable({
@@ -126,15 +128,13 @@ export class Globals {
       let data = JSON.parse(<string>jsonFileReader.result);
       data = data.sort((a: any, b: any) => a.messageid < b.messageid);
       let gpsData = data.filter((d: any) => d.pktId === 2096);
-      let startIndex = gpsData.indexOf(gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0));
+      let gpsOffset = gpsData.indexOf(gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0));
       let latCol = gpsData.map((a: any) => a.latitude);
-      console.log("old: " + latCol.length);
-      console.log("index: " + startIndex);
       latCol = latCol.filter((l: number) => l !== 0);
-      console.log("new: " + latCol.length);
       let longCol = gpsData.map((a: any) => a.longitude);
       longCol = longCol.filter((l: number) => l !== 0);
       let timeCol: number[] = Array.from(new Set(gpsData.map((a: any) => timeStringToSecs(a.time))));
+      let flightTime = timeCol.length;
       for(let i = 0; i < timeCol.length; i++) {
         if(timeCol[i] + 1 < timeCol[i+1]) {
           timeCol = timeCol.slice(i + 1);
@@ -142,14 +142,16 @@ export class Globals {
         }
       }// TODO is the for necessary?
       let seconds = timeCol.length;
+      let timeOffset = flightTime - seconds;
       console.log(new Date());
       let minLat = Math.min(...latCol);
       let maxLat = Math.max(...latCol);
       let minLong = Math.min(...longCol);
       let matLong = Math.max(...longCol);
-      inst.dexieDbService.files.add({ // TODO offset
+      inst.dexieDbService.files.add({ // TODO altitude
         fileName: inst._file.name,
         messageCount: data.length,
+        fileDuration: flightTime,
         flightDuration: seconds,
         startTime: timeCol[0],
         minLatitude: !isFinite(minLat) ? 49.57384629202841 : minLat,
@@ -157,7 +159,8 @@ export class Globals {
         minLongitude: !isFinite(minLong) ? 11.02728355453469 : minLong,
         maxLongitude: !isFinite(matLong) ? 11.02728355453469 : matLong,
         altitude: 0,
-        gpsOffset: 0,
+        gpsOffset: gpsOffset,
+        timeOffset: timeOffset,
         track: []
       }).then((res: number) => {
         inst.loadDbFiles();
@@ -274,6 +277,7 @@ export class Globals {
         d.second = -1;
         if(!d.time.startsWith(lastTimeStamp)) {
           d.second = secondCounter++;
+          lastTimeStamp = d.time;
         }
       }
       filteredData[d.pktId].push(d);

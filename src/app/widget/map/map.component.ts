@@ -3,6 +3,7 @@ import {DroneMapWidget, Globals, LineType} from "../../global";
 import * as L from "leaflet";
 import {GeoJSON, LatLng} from "leaflet";
 import {RotatedMarker} from "leaflet-marker-rotation";
+import {getOrientationFromImuAttiMessage} from "../../helpers/functions";
 
 
 // @ts-ignore
@@ -63,7 +64,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         this.currentLayer = L.tileLayer('http://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
           {
             attribution: 'Map data &copy; Google.com',
-            maxZoom: MapComponent.MAX_ZOOM,
+            maxZoom: 20,
             tileSize: 512,
             zoomOffset: -1,
             subdomains: ['mt0','mt1','mt2','mt3']
@@ -84,7 +85,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         this.currentLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           {
             attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: MapComponent.MAX_ZOOM,
+            maxZoom: 20,
             tileSize: 512,
             zoomOffset: -1
           });
@@ -119,8 +120,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     if(this.globals.file) {
       let file = this.globals.file;
       this.myMap.flyToBounds(L.latLngBounds(L.latLng(file.minLatitude, file.minLongitude), L.latLng(file.maxLatitude, file.maxLongitude)), {
-        padding: new L.Point(25, 25),
-        maxZoom: MapComponent.MAX_ZOOM
+        padding: new L.Point(25, 25)
       });
       this.drawLine();
     } else {
@@ -139,12 +139,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     this.longitude = message.longitude;
     this.latitude = message.latitude;
     this.marker.setLatLng(L.latLng(this.latitude, this.longitude));
-    let imuAttiMessage = this.globals.imuAttiMessage
-    if (imuAttiMessage)
-      this.orientation = (Math.atan2(imuAttiMessage.magX, imuAttiMessage.magY) * 180 / Math.PI) -90;
-    else
-      this.orientation = 0;
-    console.log(this.orientation);
+    this.orientation = getOrientationFromImuAttiMessage(this.globals.imuAttiMessage);
     this.marker.setRotationAngle(this.orientation);
     // TODO set popup data...
     // marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();

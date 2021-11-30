@@ -48,6 +48,7 @@ export class DroneWebGuiDatabase extends Dexie {
 interface IDbFile {
   fileName: string;
   messageCount: number;
+  fileDuration: number;
   flightDuration: number;
   startTime: number;
   id?: number;
@@ -57,6 +58,7 @@ interface IDbFile {
   maxLongitude: number;
   altitude: number;
   gpsOffset: number;
+  timeOffset: number;
   track: any[];
 }
 
@@ -64,6 +66,7 @@ export class DbFile {
   public fileName: string;
   public messageCount: number;
   public flightDuration: number;
+  public fileDuration: number;
   public startTime: number;
   public id!: number;
   public minLatitude: number;
@@ -72,11 +75,12 @@ export class DbFile {
   public maxLongitude: number;
   public altitude: number;
   public gpsOffset: number;
+  public timeOffset: number;
   public track: any[];
 
   constructor(fileName: string, messageCount: number, flightDuration: number, startTime: number, id: number,
               minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number, altitude: number,
-              gpsOffset: number, track: any[]) {
+              gpsOffset: number, track: any[], fileDuration: number, timeOffset: number) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.flightDuration = flightDuration;
@@ -89,6 +93,8 @@ export class DbFile {
     this.altitude = altitude;
     this.gpsOffset = gpsOffset;
     this.track = track;
+    this.fileDuration = fileDuration;
+    this.timeOffset = timeOffset;
   }
 }
 
