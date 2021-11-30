@@ -30,6 +30,7 @@ export class AppearenceDialogueComponent implements OnInit {
       //#checkboxNumber
       checkbox0: this.checkboxValues[0],
       checkbox1: this.checkboxValues[1],
+      checkbox2: this.checkboxValues[2],
     });
     this.mapViews = [
       {value: '1', viewValue: 'open Street Map'},

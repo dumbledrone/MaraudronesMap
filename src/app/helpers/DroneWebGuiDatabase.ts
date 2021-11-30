@@ -113,9 +113,10 @@ export class GpsDbMessage extends DbMessage {
   velD: number;
   velE: number;
   velN: number;
+  time: string;
 
   constructor(id: number, fileId: number, messageNum: number, longitude: number, latitude: number, altitude: number,
-              numGPS: number, second: number, velD: number, velE: number, velN: number) {
+              numGPS: number, second: number, velD: number, velE: number, velN: number, time: string) {
     super(id, fileId, messageNum);
     this.longitude = longitude;
     this.latitude = latitude;
@@ -125,21 +126,66 @@ export class GpsDbMessage extends DbMessage {
     this.velD = velD;
     this.velE = velE;
     this.velN = velN;
+    this.time = time;
   }
 }
 
 export class ControllerDbMessage extends DbMessage {
+  ctrl_tick: number;
   ctrl_pitch: number;
   ctrl_roll: number;
   ctrl_yaw: number;
   ctrl_thr: number;
+  ctrl_mode: number;
+  mode_switch: number;
+  motor_state: number;
+  sig_level: number;
+  ctrl_level: number;
+  sim_model: number;
+  max_height: number;
+  max_radius: number;
+  D2H_x: number;
+  D2H_y: number;
+  act_req_id: number;
+  act_act_id: number;
+  cmd_mod: number;
+  mod_req_id: number;
+  fw_flag: number;
+  mot_sta: number;
+  OH_take: number;
+  rc_cnt: number;
+  sup_rc: number;
 
-  constructor(id: number, fileId: number, messageNum: number, ctrl_pitch: number, ctrl_roll: number, ctrl_yaw: number, ctrl_thr: number) {
+
+  constructor(id: number, fileId: number, messageNum: number, ctrl_pitch: number, ctrl_tick: number, ctrl_roll: number, ctrl_yaw: number, ctrl_thr: number,
+              ctrl_mode: number, mode_switch: number, motor_state: number, sig_level: number, ctrl_level: number, sim_model: number,
+              max_height: number, max_radius: number, D2H_x: number, D2H_y: number, act_req_id: number, act_act_id: number, cmd_mod: number,
+              mod_req_id: number, fw_flag: number, mot_sta: number, OH_take: number, rc_cnt: number, sup_rc: number) {
     super(id, fileId, messageNum);
+    this.ctrl_tick = ctrl_tick;
     this.ctrl_pitch = ctrl_pitch;
     this.ctrl_roll = ctrl_roll;
     this.ctrl_yaw = ctrl_yaw;
     this.ctrl_thr = ctrl_thr;
+    this.ctrl_mode = ctrl_mode;
+    this.mode_switch = mode_switch;
+    this.motor_state = motor_state;
+    this.sig_level = sig_level;
+    this.ctrl_level = ctrl_level;
+    this.sim_model = sim_model;
+    this.max_height = max_height;
+    this.max_radius = max_radius;
+    this.D2H_x = D2H_x;
+    this.D2H_y = D2H_y;
+    this.act_req_id = act_req_id;
+    this.act_act_id = act_act_id;
+    this.cmd_mod = cmd_mod;
+    this.mod_req_id = mod_req_id;
+    this.fw_flag = fw_flag;
+    this.mot_sta = mot_sta;
+    this.OH_take = OH_take;
+    this.rc_cnt = rc_cnt;
+    this.sup_rc = sup_rc;
   }
 }
 

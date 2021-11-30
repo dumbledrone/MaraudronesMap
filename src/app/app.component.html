@@ -6,8 +6,12 @@
     <app-info id="infos0"></app-info>
     <br/>
     <app-controller-status id="infos1"></app-controller-status>
+    <br/>
+    <app-anomaly id="infos2" style="display: none"></app-anomaly>
   </div>
-  <button id="appearanceButton" (click)="openDialog()">Appearance</button>
+  <!--<div>-->
+    <button id="appearanceButton" (click)="openDialog()">Appearance</button>
+  <!--</div>-->
 </div>
 <ng-container *ngIf="_showLoadingSpinner">
   <div id="loadingSpinnerDiv">

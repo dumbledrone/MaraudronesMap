@@ -1,8 +1,10 @@
 import {Component, NgModule, OnInit} from '@angular/core';
 import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {AppearenceDialogueComponent} from "./helpers/appearence-dialogue/appearence-dialogue.component";
-import {Globals, LineType} from "./global";
+import {DroneMapWidget, Globals, LineType} from "./global";
 import {global} from "@angular/compiler/src/util";
+import {AnomalyComponent} from "./widget/anomaly/anomaly.component";
+import {DroneWebGuiDatabase} from "./helpers/DroneWebGuiDatabase";
 
 @Component({
   selector: 'app-root',
@@ -20,7 +22,6 @@ export class AppComponent implements OnInit {
     this._localStorageValues=[];
     globals.loadCallback = () => {inst._showLoadingSpinner = true};
     globals.finishLoadingCallback = () => {inst._showLoadingSpinner = false};
-
   }
 
   ngOnInit(): void {
@@ -46,7 +47,7 @@ export class AppComponent implements OnInit {
     dialogRef.afterClosed().subscribe(data => {
       if(data === undefined) // -> button "close" used
         return;
-      for (let i = 0; i < 2; i++) {    //#checkboxNumber
+      for (let i = 0; i < 3; i++) {    //#checkboxNumber
         localStorage.setItem("checkbox" + i, data["checkbox"+i] ? "true": "false");
         this._localStorageValues[i] = data["checkbox"+i];
       }
@@ -62,6 +63,8 @@ export class AppComponent implements OnInit {
     document.getElementById("infos0")?.style.display = this._localStorageValues[0] ? "block" : "none";
     //@ts-ignore
     document.getElementById("infos1")?.style.display = this._localStorageValues[1] ? "block" : "none";
+    //@ts-ignore
+    document.getElementById("infos2")?.style.display = this._localStorageValues[2] ? "block" : "none";
     let tmp = localStorage.getItem("mapView");
     this.mapType = tmp===null? 1 : parseInt(tmp);
     tmp = localStorage.getItem("lineColor");
@@ -70,7 +73,7 @@ export class AppComponent implements OnInit {
 
   getLocalStorageValues() {
     let i = 0;
-    for (;i < 2; i++) {     //#checkboxNumber i < number of checkboxes
+    for (;i < 3; i++) {     //#checkboxNumber i < number of checkboxes
       let tmp = localStorage.getItem("checkbox" + i);
       this._localStorageValues[i] = tmp === null ? true : tmp === "true";
     }

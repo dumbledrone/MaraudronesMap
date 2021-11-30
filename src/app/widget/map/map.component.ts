@@ -192,7 +192,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         // @ts-ignore
         return {color: colorScale.getColor(feature.properties.colorValue).toHexString()}
         }
-    })
+    });
     this.geoTrack.addTo(this.myMap);
   }
 

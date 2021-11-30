@@ -182,7 +182,9 @@ export class Globals {
     this._dbFile = file;
     if(this._dbFile.track === undefined || this._dbFile.track.length === 0)
       this.createTrack();
-    this.fileChanged();
+    else
+      this.fileChanged();
+    console.log(this._dbFile.fileName); //debug
   }
 
   public loadDbFiles(): void {
@@ -420,9 +422,9 @@ export interface DroneMapWidget {
 
 }
 
-function timeStringToSecs(timeString: string) {
+export function timeStringToSecs(timeString: string) {
   let parts = timeString.split(":").map(x => parseInt(x));
-  return parts[0]*24 + parts[1]*60 + parts[2];
+  return parts[0]*3600 + parts[1]*60 + parts[2];
 }
 
 export enum LineType {
