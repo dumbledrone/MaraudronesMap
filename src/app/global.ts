@@ -121,7 +121,7 @@ export class Globals {
     let inst = this;
 
     let jsonFileReader = new FileReader();
-    jsonFileReader.onload = async function () {// TODO refactor to not load whole data into RAM?
+    jsonFileReader.onload = async function () {// refactor to not load whole data into RAM?
       if (inst._file === null)
         return;
       inst.loadCallback();
@@ -129,6 +129,12 @@ export class Globals {
       data = data.sort((a: any, b: any) => a.messageid < b.messageid);
       let gpsData = data.filter((d: any) => d.pktId === 2096);
       let gpsOffset = gpsData.indexOf(gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0));
+      let altitude = 0;
+      let firstGpsId = 0;
+      if (gpsData[gpsOffset]) {
+        altitude = gpsData[gpsOffset].altitude;
+        firstGpsId =  gpsData[gpsOffset].messageId;
+      }
       let latCol = gpsData.map((a: any) => a.latitude);
       latCol = latCol.filter((l: number) => l !== 0);
       let longCol = gpsData.map((a: any) => a.longitude);
@@ -140,7 +146,7 @@ export class Globals {
           timeCol = timeCol.slice(i + 1);
           break;
         }
-      }// TODO is the for necessary?
+      }
       let seconds = timeCol.length;
       let timeOffset = flightTime - seconds;
       console.log(new Date());
@@ -148,7 +154,7 @@ export class Globals {
       let maxLat = Math.max(...latCol);
       let minLong = Math.min(...longCol);
       let matLong = Math.max(...longCol);
-      inst.dexieDbService.files.add({ // TODO altitude
+      inst.dexieDbService.files.add({
         fileName: inst._file.name,
         messageCount: data.length,
         fileDuration: flightTime,
@@ -158,8 +164,9 @@ export class Globals {
         maxLatitude: !isFinite(maxLat) ? 49.57384629202841 : maxLat,
         minLongitude: !isFinite(minLong) ? 11.02728355453469 : minLong,
         maxLongitude: !isFinite(matLong) ? 11.02728355453469 : matLong,
-        altitude: 0,
+        altitude: altitude,
         gpsOffset: gpsOffset,
+        gpsOffsetId: firstGpsId,
         timeOffset: timeOffset,
         track: []
       }).then((res: number) => {
@@ -177,7 +184,16 @@ export class Globals {
   public selectFile(fileId: number) {
     let file = this.availableFiles.find(a => a.id === fileId);
     if(file === undefined) {
-      // TODO set file to null & send info!
+      this._dbFile = null;
+      this._fileId = -1;
+      this._flightDuration = 0;
+      this._gpsMessage = undefined;
+      this._controllerMessage = undefined;
+      this._uSonicMessage = undefined;
+      this._batteryMessage = undefined;
+      this._osdGeneralMessage = undefined;
+      this._imuAttiMessage = undefined;
+      this.fileChanged();
       return;
     }
     this._fileId = file.id;
@@ -263,7 +279,7 @@ export class Globals {
     });
   }
 
-  private handleDataArray(fileId: number, data: any[]) {// TODO update
+  private handleDataArray(fileId: number, data: any[]) {
     let inst = this;
     let filteredData: any = {};
     let lastTimeStamp = "--";
@@ -294,7 +310,6 @@ export class Globals {
     }
     let supportedKeys = ["2096", "16", "1000", "1710", "12", "1700", "2048"];
     keys.forEach(key => {
-      // console.log(filteredData[key][0]);
       if(!supportedKeys.includes(key))
         return;
       runningImports++;
@@ -364,7 +379,8 @@ export class Globals {
       gpsMessages.forEach((mes, ind) => {
         if((mes.latitude === 0 && mes.longitude === 0) || isNaN(mes.latitude) || isNaN(mes.longitude)) //remove NaN and (0,0)
           return;
-        vertices.push({lat: mes.latitude, long: mes.longitude, ind: ind, mesId: mes.id, altitude: mes.altitude});
+        vertices.push({lat: mes.latitude, long: mes.longitude, ind: ind, mesId: mes.id, altitude: mes.altitude,
+          speed: Math.sqrt(Math.pow(mes.velE, 2) + Math.pow(mes.velN, 2))});
       });
       if(vertices.length === 0) {
         window.alert('There are no gps messages in this file.');
@@ -390,12 +406,12 @@ export class Globals {
 
       }
       //maybeTodo maybe take only every fifth
-      //maybeTodo finally: set indizes without spaces
+      //maybeTodo finally: set indices without spaces
 
   }
 
-  set lineType(linetypeNew:LineType) {
-    this._lineType = linetypeNew;
+  set lineType(lineTypeNew:LineType) {
+    this._lineType = lineTypeNew;
     this.updated();
   }
 
@@ -434,7 +450,8 @@ export function timeStringToSecs(timeString: string) {
 export enum LineType {
   none,
   time,
-  height
+  height,
+  speed
 }
 
 

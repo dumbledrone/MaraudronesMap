@@ -3,6 +3,7 @@ import {DroneMapWidget, Globals} from "../../global";
 
 const STEP_KEY = "stepSize";
 const STEP_SPEED_KEY = "stepSpeed";
+const USE_SECONDS_KEY = "useSeconds";
 
 @Component({
   selector: 'app-time-slider',
@@ -29,6 +30,9 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
     let stepSpeed = localStorage.getItem(STEP_SPEED_KEY);
     if(stepSpeed)
       this.stepSpeed = parseFloat(stepSpeed);
+    let useSeconds = localStorage.getItem(USE_SECONDS_KEY);
+    if(useSeconds)
+      this.useSeconds = (useSeconds === 'true');
   }
 
   ngOnInit(): void {
@@ -76,7 +80,8 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
 
   set useSeconds(val: boolean) {
     this._useSeconds = val;
-    this.updateSlider();// TODO persist
+    localStorage.setItem(USE_SECONDS_KEY, val.toString());
+    this.updateSlider();
     // TODO get secs from message num / get messagenum from secs
   }
 
@@ -93,7 +98,7 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
     return this._stepSpeed;
   }
 
-  set stepSpeed(stepSpeed) {// TODO does not work correctly
+  set stepSpeed(stepSpeed) {
     this._stepSpeed = parseFloat(String(stepSpeed));
     localStorage.setItem(STEP_SPEED_KEY, String(stepSpeed));
   }

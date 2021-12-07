@@ -16,6 +16,9 @@ export class InfoComponent implements OnInit, DroneMapWidget {
   relative_height = 0;
   uSonic_height = 0;
   uSonic_valid = false;
+  _fileAltitude = 0;
+  vSpeed = 0;
+  hSpeed = 0;
 
   constructor(private globals: Globals) {
     this.globals.subscribe(this);
@@ -25,6 +28,8 @@ export class InfoComponent implements OnInit, DroneMapWidget {
   }
 
   fileChanged(): void {
+    if(this.globals.file)
+      this._fileAltitude = this.globals.file.altitude;
   }
 
   fileListChanged(): void {
@@ -49,17 +54,34 @@ export class InfoComponent implements OnInit, DroneMapWidget {
       this.latitude = gpsMes.latitude;
       this.altitudeNN = gpsMes.altitude;
       this.satelliteNumber = gpsMes.numGPS;
+      this.vSpeed = -gpsMes.velD;
+      this.hSpeed = Math.sqrt(Math.pow(gpsMes.velN, 2) + Math.pow(gpsMes.velE, 2));
+    } else {
+      this.longitude = 0;
+      this.latitude = 0;
+      this.altitudeNN = 0;
+      this.satelliteNumber = 0;
+      this.vSpeed = -0;
+      this.hSpeed = 0;
     }
     if(batMes) {
       this.batteryPercentage = batMes.cap_per;
       this.batteryTemp = batMes.temp;
+    } else {
+      this.batteryPercentage = 0;
+      this.batteryTemp = 0;
     }
     if(usMes) {
       this.uSonic_height = usMes.usonic_h;
       this.uSonic_valid = usMes.usonic_flag === 1;
+    } else {
+      this.uSonic_height = 0;
+      this.uSonic_valid = false;
     }
     if(osMes) {
       this.relative_height = osMes.relative_height;
+    } else {
+      this.relative_height = 0;
     }
   }
 }

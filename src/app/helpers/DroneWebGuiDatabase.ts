@@ -16,7 +16,7 @@ export class DroneWebGuiDatabase extends Dexie {
     super("DroneWebGuiDatabase");
     this.version(1).stores({
       files: '++id, fileName',
-      gps: '++id, fileId, [fileId+messageNum], [fileId+second]',
+      gps: '++id, fileId, messageId, [fileId+messageNum], [fileId+second]',
       controller: '++id, fileId, [fileId+messageNum]',
       battery: '++id, fileId, [fileId+messageNum]',
       ultrasonic: '++id, fileId, [fileId+messageNum]',
@@ -58,6 +58,7 @@ interface IDbFile {
   maxLongitude: number;
   altitude: number;
   gpsOffset: number;
+  gpsOffsetId: number;
   timeOffset: number;
   track: any[];
 }
@@ -75,12 +76,13 @@ export class DbFile {
   public maxLongitude: number;
   public altitude: number;
   public gpsOffset: number;
+  public gpsOffsetId: number;
   public timeOffset: number;
   public track: any[];
 
   constructor(fileName: string, messageCount: number, flightDuration: number, startTime: number, id: number,
               minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number, altitude: number,
-              gpsOffset: number, track: any[], fileDuration: number, timeOffset: number) {
+              gpsOffset: number, track: any[], fileDuration: number, timeOffset: number, gpsOffsetId: number) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.flightDuration = flightDuration;
@@ -95,6 +97,7 @@ export class DbFile {
     this.track = track;
     this.fileDuration = fileDuration;
     this.timeOffset = timeOffset;
+    this.gpsOffsetId = gpsOffsetId;
   }
 }
 

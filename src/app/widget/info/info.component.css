@@ -16,3 +16,7 @@ span.grey {
 .value {
   grid-column: 2;
 }
+
+.material-icons {
+  cursor: help;
+}

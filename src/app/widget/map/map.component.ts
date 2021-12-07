@@ -172,8 +172,9 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     let trackGeoJSON: any[] = [];
     trackVerticePairs.forEach((line, ind)=> {
       //colorType: for colorType needed info must be added in properties for new colorTypes
-      trackGeoJSON.push({type: "Feature", properties: {colorValue: ind, altitude: (line[0].altitude + line[1].altitude)/2},
-        geometry:{ type: "Polygon", coordinates: [[[line[0].long,line[0].lat],[line[1].long,line[1].lat]]]}})
+      trackGeoJSON.push({type: "Feature", properties: {colorValue: ind, altitude: (line[0].altitude + line[1].altitude)/2,
+          speed: (line[0].speed + line[1].speed)/2}, geometry:{ type: "Polygon",
+          coordinates: [[[line[0].long,line[0].lat],[line[1].long,line[1].lat]]]}})
     });
 
     let colorScale_track_retObject: any = this.editAccordingToType(this.globals.lineType, trackGeoJSON);
@@ -216,6 +217,10 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         break;
       case LineType.time:
         colorScale = new ColorScale(0,this.globals.file.track.length - 1, ["#ff0014", '#ffc300', '#00ff00', '#0000ff']);
+        break;
+      case LineType.speed:
+        let speeds = this.globals.file.track.map(t => t.speed);
+        colorScale = new ColorScale(0,Math.max(...speeds), ["#00ff00", '#0000ff']);
         break;
       case LineType.none:
       default:

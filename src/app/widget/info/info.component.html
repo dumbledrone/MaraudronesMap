@@ -11,11 +11,11 @@
   <span class="label">
     <span class="material-icons grey" title="altitude above ground">upgrade</span>
   </span>
-  <span class="value"><!--{{relative_height | number: "1.2-2"}}-->TODO m</span>
+  <span class="value">{{altitudeNN - _fileAltitude | number: "1.2-2"}} m</span>
   <span class="label">
     <span class="material-icons grey" title="altitude above NN">waves</span>
   </span>
-  <span class="value">{{altitudeNN | number: "1.2-2"}}m</span>
+  <span class="value">{{altitudeNN | number: "1.2-2"}} m</span>
   <span class="label">
     <span class="material-icons grey" title="altitude by ultra sound">expand</span>
   </span>
@@ -23,6 +23,14 @@
     <ng-container *ngIf="uSonic_valid">{{(uSonic_height/10)-10 | number: "1.0-0"}} cm</ng-container>
     <ng-container *ngIf="!uSonic_valid"> -- cm</ng-container>
   </span>
+  <span class="label">
+    <span class="material-icons grey" title="vertical speed">flight</span>
+  </span>
+  <span class="value">{{vSpeed}} m/s</span>
+  <span class="label">
+    <span class="material-icons grey" title="horizontal speed" style="transform: rotate(90deg)">flight</span>
+  </span>
+  <span class="value">{{hSpeed | number: "1.2-2"}} m/s</span>
   <br/>
   <span class="label">
     <span class="material-icons grey" title="satellite number">satellite_alt</span>
