@@ -43,7 +43,7 @@ export class AppearenceDialogueComponent implements OnInit {
       {value: '0', viewValue: 'no coloring'},
       {value: '1', viewValue: 'course of time'},
       {value: '2', viewValue: 'height'},
-      {value: '2', viewValue: 'horizontal speed'},
+      {value: '3', viewValue: 'horizontal speed'},
     ];
   }
 

@@ -221,6 +221,9 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
       case LineType.speed:
         let speeds = this.globals.file.track.map(t => t.speed);
         colorScale = new ColorScale(0,Math.max(...speeds), ["#00ff00", '#0000ff']);
+        trackGeoJson.forEach( line => {
+          line.properties.colorValue = line.properties.speed;
+        });
         break;
       case LineType.none:
       default:
