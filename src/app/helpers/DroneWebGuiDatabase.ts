@@ -1,4 +1,5 @@
 import Dexie from 'dexie';
+import {of} from "rxjs";
 
 export class DroneWebGuiDatabase extends Dexie {
   // Declare implicit table properties.
@@ -11,6 +12,7 @@ export class DroneWebGuiDatabase extends Dexie {
   osdGeneral: Dexie.Table<OsdGeneralDataDbMessage, number>;
   rcDebug: Dexie.Table<RcDebugInfoDbMessage, number>;
   imuAtti: Dexie.Table<ImuAttiDbMessage, number>;
+  recMag: Dexie.Table<RecMagDbMessage, number>;
 
   constructor () {
     super("DroneWebGuiDatabase");
@@ -23,6 +25,7 @@ export class DroneWebGuiDatabase extends Dexie {
       osdGeneral: '++id, fileId, [fileId+messageNum]',
       rcDebug: '++id, fileId, [fileId+messageNum]',
       imuAttiDbMessage: '++id, fileId, [fileId+messageNum]',
+      recMag: '++id, fileId, [fileId+messageNum]',
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -42,6 +45,8 @@ export class DroneWebGuiDatabase extends Dexie {
     this.rcDebug.mapToClass(RcDebugInfoDbMessage);
     this.imuAtti = this.table("imuAttiDbMessage");
     this.imuAtti.mapToClass(ImuAttiDbMessage);
+    this.recMag = this.table("recMag");
+    this.recMag.mapToClass(RecMagDbMessage);
   }
 }
 
@@ -105,11 +110,13 @@ export class DbMessage {
   id: number;
   fileId: number;
   messageNum: number;
+  offset: number;
 
-  constructor(id: number, fileId: number, messageNum: number){
+  constructor(id: number, fileId: number, messageNum: number, offset: number){
     this.id = id;
     this.fileId = fileId;
     this.messageNum = messageNum;
+    this.offset = offset;
   }
 }
 
@@ -123,10 +130,11 @@ export class GpsDbMessage extends DbMessage {
   velE: number;
   velN: number;
   time: string;
+  distance: number;
 
-  constructor(id: number, fileId: number, messageNum: number, longitude: number, latitude: number, altitude: number,
-              numGPS: number, second: number, velD: number, velE: number, velN: number, time: string) {
-    super(id, fileId, messageNum);
+  constructor(id: number, fileId: number, messageNum: number, offset: number, longitude: number, latitude: number, altitude: number,
+              numGPS: number, second: number, velD: number, velE: number, velN: number, time: string, distance: number) {
+    super(id, fileId, messageNum, offset);
     this.longitude = longitude;
     this.latitude = latitude;
     this.altitude = altitude;
@@ -136,6 +144,7 @@ export class GpsDbMessage extends DbMessage {
     this.velE = velE;
     this.velN = velN;
     this.time = time;
+    this.distance = distance;
   }
 }
 
@@ -166,11 +175,11 @@ export class ControllerDbMessage extends DbMessage {
   sup_rc: number;
 
 
-  constructor(id: number, fileId: number, messageNum: number, ctrl_pitch: number, ctrl_tick: number, ctrl_roll: number, ctrl_yaw: number, ctrl_thr: number,
+  constructor(id: number, fileId: number, messageNum: number, offset: number, ctrl_pitch: number, ctrl_tick: number, ctrl_roll: number, ctrl_yaw: number, ctrl_thr: number,
               ctrl_mode: number, mode_switch: number, motor_state: number, sig_level: number, ctrl_level: number, sim_model: number,
               max_height: number, max_radius: number, D2H_x: number, D2H_y: number, act_req_id: number, act_act_id: number, cmd_mod: number,
               mod_req_id: number, fw_flag: number, mot_sta: number, OH_take: number, rc_cnt: number, sup_rc: number) {
-    super(id, fileId, messageNum);
+    super(id, fileId, messageNum, offset);
     this.ctrl_tick = ctrl_tick;
     this.ctrl_pitch = ctrl_pitch;
     this.ctrl_roll = ctrl_roll;
@@ -202,8 +211,8 @@ export class BatteryDbMessage extends DbMessage {
   cap_per: number;
   temp: number;
 
-  constructor(id: number, fileId: number, messageNum: number, cap_per: number, temp: number) {
-    super(id, fileId, messageNum);
+  constructor(id: number, fileId: number, messageNum: number, offset: number, cap_per: number, temp: number) {
+    super(id, fileId, messageNum, offset);
     this.cap_per = cap_per;
     this.temp = temp;
   }
@@ -213,8 +222,8 @@ export class UltrasonicDbMessage extends DbMessage {
   usonic_h: number;
   usonic_flag: number;
 
-  constructor(id: number, fileId: number, messageNum: number, usonic_h: number, usonic_flag: number) {
-    super(id, fileId, messageNum);
+  constructor(id: number, fileId: number, messageNum: number, offset: number, usonic_h: number, usonic_flag: number) {
+    super(id, fileId, messageNum, offset);
     this.usonic_h = usonic_h;
     this.usonic_flag = usonic_flag;
   }
@@ -251,14 +260,14 @@ export class OsdGeneralDataDbMessage extends DbMessage {
   sdk_ctrl_dev: number;
   yaw_rate: number;
 
-  constructor(id: number, fileId: number, messageNum: number, longtitude: number, latitude: number, relative_height: number,
+  constructor(id: number, fileId: number, messageNum: number, offset: number, longtitude: number, latitude: number, relative_height: number,
               vgx: number, vgy: number, vgz: number, pitch: number, roll: number, yaw: number, mode1: number, latest_cmd: number,
               controller_state: number, gps_nums: number, gohome_landing_reason: number, start_fail_reason: number,
               controller_state_ext: number, ctrl_tick: number, ultrasonic_height: number, motor_startup_time: number,
               motor_startup_times: number, bat_alarm1: number, bat_alarm2: number, version_match: number,
               product_type: number, imu_init_fail_reason: number, stop_motor_reason: number, motor_start_error_code: number,
               sdk_ctrl_dev: number, yaw_rate: number) {
-    super(id, fileId, messageNum);
+    super(id, fileId, messageNum, offset);
     this.longtitude = longtitude;
     this.latitude = latitude;
     this.relative_height = relative_height;
@@ -307,11 +316,11 @@ export class RcDebugInfoDbMessage extends DbMessage  {
   wifi_en: number;
   in_wifi: number;
 
-  constructor(id: number, fileId: number, messageNum: number, cur_cmd: number, fail_safe: number, vedio_lost: number,
+  constructor(id: number, fileId: number, messageNum: number, offset: number, cur_cmd: number, fail_safe: number, vedio_lost: number,
               data_lost: number, app_lost: number, frame_lost: number, rec_cnt: number, sky_con: number,
               gnd_con: number, connected: number, m_changed: number, arm_status: number, wifi_en: number,
               in_wifi: number) {
-    super(id, fileId, messageNum);
+    super(id, fileId, messageNum, offset);
     this.cur_cmd = cur_cmd;
     this.fail_safe = fail_safe;
     this.vedio_lost = vedio_lost;
@@ -366,13 +375,13 @@ export class ImuAttiDbMessage extends DbMessage {
   numSats: number;
   atti_cnt: number;
 
-  constructor(id: number, fileId: number, messageNum: number, longRad: number, latRad: number, longitudeDegrees: number,
+  constructor(id: number, fileId: number, messageNum: number, offset: number, longRad: number, latRad: number, longitudeDegrees: number,
               latitudeDegrees: number, baroPress: number, accelX: number, accelY: number, accelZ: number, gyroX: number,
               gyroY: number, gyroZ: number, baroAlti: number, quatW: number, quatX: number, quatY: number, quatZ: number,
               ag_X: number, ag_Y: number, ag_Z: number, velN: number, velE: number, velD: number, gb_X: number,
               gb_Y: number, gb_Z: number, magX: number, magY: number, magZ: number, imuTemp: number, ty: number,
               tz: number, sensor_stat: number, filter_stat: number, numSats: number, atti_cnt: number) {
-    super(id, fileId, messageNum);
+    super(id, fileId, messageNum, offset);
     this.longRad = longRad;
     this.latRad = latRad;
     this.longitudeDegrees = longitudeDegrees;
@@ -408,5 +417,18 @@ export class ImuAttiDbMessage extends DbMessage {
     this.filter_stat = filter_stat;
     this.numSats = numSats;
     this.atti_cnt = atti_cnt;
+  }
+}
+
+export class RecMagDbMessage extends DbMessage {
+  magX: number;
+  magY: number;
+  magZ: number;
+
+  constructor(id: number, fileId: number, messageNum: number, offset: number, magX: number, magY: number, magZ: number) {
+    super(id, fileId, messageNum, offset);
+    this.magX = magX;
+    this.magY = magY;
+    this.magZ = magZ;
   }
 }

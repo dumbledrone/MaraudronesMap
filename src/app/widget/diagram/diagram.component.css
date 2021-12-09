@@ -1,0 +1,39 @@
+.iconSpan {
+  float: right;
+}
+
+#infoChartBgDiv.full-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1001;
+  background-color: hsla(0,0%,0%,0.5);
+}
+
+.full-screen > #infoChartDiv {
+  width: 95vw;
+  height: 95vh;
+  margin-top: 2.5vh;
+  margin-left: 2.5vw;
+  z-index: 1002;
+  background-color: white;
+}
+
+.fullscreen-button{
+  display: none;
+}
+
+.full-screen .fullscreen-button{
+  display: inline-block;
+}
+
+#infoChart {
+  position: initial;
+}
+
+#settingsDiv {
+  height: 250px;
+  overflow-y: auto;
+}

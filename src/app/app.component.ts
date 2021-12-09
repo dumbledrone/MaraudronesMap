@@ -6,6 +6,8 @@ import {global} from "@angular/compiler/src/util";
 import {AnomalyComponent} from "./widget/anomaly/anomaly.component";
 import {DroneWebGuiDatabase} from "./helpers/DroneWebGuiDatabase";
 
+const NUMBER_OF_WIDGETS = 4;
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -47,7 +49,7 @@ export class AppComponent implements OnInit {
     dialogRef.afterClosed().subscribe(data => {
       if(data === undefined) // -> button "close" used
         return;
-      for (let i = 0; i < 3; i++) {    //#checkboxNumber
+      for (let i = 0; i < NUMBER_OF_WIDGETS; i++) {    //#checkboxNumber
         localStorage.setItem("checkbox" + i, data["checkbox"+i] ? "true": "false");
         this._localStorageValues[i] = data["checkbox"+i];
       }
@@ -65,6 +67,8 @@ export class AppComponent implements OnInit {
     document.getElementById("infos1")?.style.display = this._localStorageValues[1] ? "block" : "none";
     //@ts-ignore
     document.getElementById("infos2")?.style.display = this._localStorageValues[2] ? "block" : "none";
+    //@ts-ignore
+    document.getElementById("infos3")?.style.display = this._localStorageValues[3] ? "block" : "none";
     let tmp = localStorage.getItem("mapView");
     this.mapType = tmp===null? 1 : parseInt(tmp);
     tmp = localStorage.getItem("lineColor");
@@ -73,7 +77,7 @@ export class AppComponent implements OnInit {
 
   getLocalStorageValues() {
     let i = 0;
-    for (;i < 3; i++) {     //#checkboxNumber i < number of checkboxes
+    for (;i < NUMBER_OF_WIDGETS; i++) {     //#checkboxNumber i < number of checkboxes
       let tmp = localStorage.getItem("checkbox" + i);
       this._localStorageValues[i] = tmp === null ? true : tmp === "true";
     }

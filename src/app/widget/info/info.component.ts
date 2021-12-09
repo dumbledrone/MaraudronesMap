@@ -13,12 +13,13 @@ export class InfoComponent implements OnInit, DroneMapWidget {
   batteryPercentage = 100;
   satelliteNumber = 0;
   batteryTemp = 0;
-  relative_height = 0;
+  relative_height = 0;// TODO still needed?
   uSonic_height = 0;
   uSonic_valid = false;
   _fileAltitude = 0;
   vSpeed = 0;
   hSpeed = 0;
+  distance = 0;
 
   constructor(private globals: Globals) {
     this.globals.subscribe(this);
@@ -41,6 +42,9 @@ export class InfoComponent implements OnInit, DroneMapWidget {
     this.altitudeNN = 0;
     this.batteryPercentage = 100;
     this.satelliteNumber = 0;
+    this.vSpeed = -0;
+    this.hSpeed = 0;
+    this.distance = 0;
     this.batteryTemp = 0;
     this.relative_height = 0;
     this.uSonic_height = 0;
@@ -56,32 +60,18 @@ export class InfoComponent implements OnInit, DroneMapWidget {
       this.satelliteNumber = gpsMes.numGPS;
       this.vSpeed = -gpsMes.velD;
       this.hSpeed = Math.sqrt(Math.pow(gpsMes.velN, 2) + Math.pow(gpsMes.velE, 2));
-    } else {
-      this.longitude = 0;
-      this.latitude = 0;
-      this.altitudeNN = 0;
-      this.satelliteNumber = 0;
-      this.vSpeed = -0;
-      this.hSpeed = 0;
+      this.distance = gpsMes.distance;
     }
     if(batMes) {
       this.batteryPercentage = batMes.cap_per;
       this.batteryTemp = batMes.temp;
-    } else {
-      this.batteryPercentage = 0;
-      this.batteryTemp = 0;
     }
     if(usMes) {
       this.uSonic_height = usMes.usonic_h;
       this.uSonic_valid = usMes.usonic_flag === 1;
-    } else {
-      this.uSonic_height = 0;
-      this.uSonic_valid = false;
     }
     if(osMes) {
       this.relative_height = osMes.relative_height;
-    } else {
-      this.relative_height = 0;
     }
   }
 }

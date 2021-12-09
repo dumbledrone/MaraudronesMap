@@ -3,7 +3,7 @@ import {
   BatteryDbMessage,
   ControllerDbMessage,
   DbFile, DroneWebGuiDatabase,
-  GpsDbMessage, ImuAttiDbMessage, OsdGeneralDataDbMessage,
+  GpsDbMessage, ImuAttiDbMessage, OsdGeneralDataDbMessage, RecMagDbMessage,
   UltrasonicDbMessage
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
@@ -33,6 +33,7 @@ export class Globals {
   private _batteryMessage: BatteryDbMessage | undefined;
   private _osdGeneralMessage: OsdGeneralDataDbMessage | undefined;
   private _imuAttiMessage: ImuAttiDbMessage | undefined;
+  private _recMagMessage: RecMagDbMessage | undefined;
   private _lineType: LineType = LineType.none;
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
@@ -109,6 +110,12 @@ export class Globals {
     return this._imuAttiMessage;
   }
 
+  set recMagMessage(recMagMessage: RecMagDbMessage | undefined) {}
+
+  public get recMagMessage(): RecMagDbMessage | undefined {
+    return this._recMagMessage;
+  }
+
   set file(file: DbFile | null) {}
 
   public get file(): DbFile | null {
@@ -128,12 +135,19 @@ export class Globals {
       let data = JSON.parse(<string>jsonFileReader.result);
       data = data.sort((a: any, b: any) => a.messageid < b.messageid);
       let gpsData = data.filter((d: any) => d.pktId === 2096);
+      gpsData.forEach((g: any) => g.distance = 0);
       let gpsOffset = gpsData.indexOf(gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0));
       let altitude = 0;
       let firstGpsId = 0;
       if (gpsData[gpsOffset]) {
         altitude = gpsData[gpsOffset].altitude;
         firstGpsId =  gpsData[gpsOffset].messageId;
+        let distance = 0;
+        for (let i = gpsOffset; i+1 < gpsData.length; i++) {
+          let d1 = gpsData[i], d2 = gpsData[i+1];
+          distance += coordinatesToM(d1.latitude, d1.longitude, d2.latitude, d2.longitude);
+          d2.distance = distance;
+        }
       }
       let latCol = gpsData.map((a: any) => a.latitude);
       latCol = latCol.filter((l: number) => l !== 0);
@@ -193,6 +207,7 @@ export class Globals {
       this._batteryMessage = undefined;
       this._osdGeneralMessage = undefined;
       this._imuAttiMessage = undefined;
+      this._recMagMessage = undefined;
       this.fileChanged();
       return;
     }
@@ -220,7 +235,7 @@ export class Globals {
     let inst = this;
     function onComplete() {
       ct++;
-      if(ct === 6) {// Update if additional message types are added
+      if(ct === 7) {// Update if additional message types are added
         inst.loadDbFiles();
         inst.updated();
       }
@@ -260,6 +275,12 @@ export class Globals {
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._imuAttiMessage = res.slice(-1).pop();
+      onComplete();
+    });
+    this.dexieDbService.recMag.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._recMagMessage = res.slice(-1).pop();
       onComplete();
     });
   }
@@ -308,7 +329,7 @@ export class Globals {
         inst.finishLoadingCallback();
       }
     }
-    let supportedKeys = ["2096", "16", "1000", "1710", "12", "1700", "2048"];
+    let supportedKeys = ["2096", "16", "1000", "1710", "12", "1700", "2048", "2256"];
     keys.forEach(key => {
       if(!supportedKeys.includes(key))
         return;
@@ -342,6 +363,10 @@ export class Globals {
           bulkAddInChunks(inst.dexieDbService.imuAtti, filteredData[key], 5000,
             () => completeFunc(key)).then(() => {});
           break;
+        case "2256":
+          bulkAddInChunks(inst.dexieDbService.recMag, filteredData[key], 5000,
+            () => completeFunc(key)).then(() => {});
+          break;
       }
     });
   }
@@ -367,6 +392,7 @@ export class Globals {
     this.dexieDbService.osdGeneral.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.rcDebug.where('fileId').equals(this._fileId).delete().then(() => complete());
     this.dexieDbService.imuAtti.where('fileId').equals(this._fileId).delete().then(() => complete());
+    this.dexieDbService.recMag.where('fileId').equals(this._fileId).delete().then(() => complete());
   }
 
   private createTrack() {
@@ -433,6 +459,18 @@ async function bulkAddInChunks (table: Table, objects: any[], chunkSize: number,
   } else {
     onComplete();
   }
+}
+
+function coordinatesToM(lat1: number, lon1: number, lat2: number, lon2: number){  // generally used geo measurement function
+  let R = 6378.137; // Radius of earth in KM
+  let dLat = lat2 * Math.PI / 180 - lat1 * Math.PI / 180;
+  let dLon = lon2 * Math.PI / 180 - lon1 * Math.PI / 180;
+  let a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  let d = R * c;
+  return d * 1000; // m
 }
 
 export interface DroneMapWidget {

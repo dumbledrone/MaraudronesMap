@@ -26,11 +26,15 @@
   <span class="label">
     <span class="material-icons grey" title="vertical speed">flight</span>
   </span>
-  <span class="value">{{vSpeed}} m/s</span>
+  <span class="value">{{vSpeed | number: "1.2-2"}} m/s</span>
   <span class="label">
     <span class="material-icons grey" title="horizontal speed" style="transform: rotate(90deg)">flight</span>
   </span>
   <span class="value">{{hSpeed | number: "1.2-2"}} m/s</span>
+  <span class="label">
+    <span class="material-icons grey" title="flight distance">query_stats</span>
+  </span>
+  <span class="value">{{distance | number: "1.2-2"}} m</span>
   <br/>
   <span class="label">
     <span class="material-icons grey" title="satellite number">satellite_alt</span>

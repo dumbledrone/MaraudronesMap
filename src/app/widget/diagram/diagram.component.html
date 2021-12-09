@@ -1,0 +1,34 @@
+<p><b>Data:</b><span class="iconSpan">
+  <span class="material-icons grey" title="reset zoom" style="margin-right: 10px; cursor: pointer" (click)="resetZoom()">zoom_out_map</span>
+  <span class="material-icons grey" title="full screen" style="transform: scaleX(-1); margin-right: 10px; cursor: pointer" (click)="showGraphInFullscreen()">launch</span>
+  <span class="material-icons grey" title="edit data" style="cursor: pointer" (click)="toggleGraphSettings()">build</span>
+</span></p>
+<div id="infoChartBgDiv">
+  <div id="infoChartDiv">
+    <span class="material-icons grey fullscreen-button" title="exit full screen" style="transform: scaleY(-1); margin: 10px; cursor: pointer; float: right" (click)="collapseGraph()">tab_unselected</span>
+    <!--<span class="material-icons grey fullscreen-button" title="edit data" style="cursor: pointer; margin: 10px; float: right" (click)="toggleGraphSettings()">build</span>-->
+    <span class="material-icons grey fullscreen-button" title="reset zoom" style="cursor: pointer; margin: 10px; float: right" (click)="resetZoom()">zoom_out_map</span>
+    <canvas id="infoChart"></canvas>
+    <div id="settingsDiv" style="display: none" class="noSelect">
+      <span class="material-icons grey" title="add data" style="cursor: pointer; margin: 10px; float: right" (click)="addEntry()">add_box</span>
+      <div id="dataSettingsDiv"></div>
+      <ng-container *ngFor="let dat of data; let i = index">
+        <select [(ngModel)]="dat.data" style="margin-left: 10px" (change)="dataArrUpdated()">
+          <option value="">No data.</option>
+          <optgroup label="general">
+            <option value="speed">speed</option>
+          </optgroup>
+          <optgroup label="gps">
+            <option value="2096-altitude">altitude</option>
+          </optgroup>
+          <optgroup label="battery">
+            <option value="1710-cap_per">battery capacity</option>
+          </optgroup>
+        </select>
+        <input type="color" style="margin-left: 10px" [(ngModel)]="dat.color" (change)="dataArrUpdated()">
+        <span class="material-icons grey" title="delete" style="cursor: pointer; margin-left: 10px" (click)="removeEntry(i)">delete_forever</span>
+        <br/>
+      </ng-container>
+    </div>
+  </div>
+</div>

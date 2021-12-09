@@ -3,7 +3,7 @@ import {DroneMapWidget, Globals, LineType} from "../../global";
 import * as L from "leaflet";
 import {GeoJSON, LatLng} from "leaflet";
 import {RotatedMarker} from "leaflet-marker-rotation";
-import {getOrientationFromImuAttiMessage} from "../../helpers/functions";
+import {getOrientationFromImuAttiMessage, getOrientationFromRecMagMessage} from "../../helpers/functions";
 
 
 // @ts-ignore
@@ -139,7 +139,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     this.longitude = message.longitude;
     this.latitude = message.latitude;
     this.marker.setLatLng(L.latLng(this.latitude, this.longitude));
-    this.orientation = getOrientationFromImuAttiMessage(this.globals.imuAttiMessage);
+    this.orientation = getOrientationFromRecMagMessage(this.globals.recMagMessage);
     this.marker.setRotationAngle(this.orientation);
     // TODO set popup data...
     // marker.bindPopup("<b>Hello world!</b><br>I am a popup.").openPopup();

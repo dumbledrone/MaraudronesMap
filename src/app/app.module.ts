@@ -22,6 +22,7 @@ import {MatButtonToggleModule} from "@angular/material/button-toggle";
 import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
+import { DiagramComponent } from './widget/diagram/diagram.component';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,8 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
     TimeSliderComponent,
     FileSelectorComponent,
     AppearenceDialogueComponent,
-    AnomalyComponent
+    AnomalyComponent,
+    DiagramComponent
   ],
   imports: [
     BrowserModule,
