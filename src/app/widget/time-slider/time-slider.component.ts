@@ -114,16 +114,36 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
     this.currentTime = 0;
   }
 
-  previousStep() {
-    if (this.currentTime > 0) {
-      this.currentTime -= this._step;
+  jumpPrevious() {
+    let newTime = this.currentTime - this._step * 10;
+    if (newTime < 0) {
+      newTime = 0;
     }
+    this.currentTime = newTime;
+  }
+
+  previousStep() {
+    let newTime = this.currentTime - this._step;
+    if (newTime < 0) {
+      newTime = 0;
+    }
+    this.currentTime = newTime;
   }
 
   nextStep() {
-    if (this._currentTime < this._sliderMax - 1) {
-      this.currentTime += this._step;
+    let newTime = this.currentTime + this._step;
+    if (newTime > this._sliderMax - 1) {
+      newTime = this._sliderMax - 1;
     }
+    this.currentTime = newTime;
+  }
+
+  jumpNext() {
+    let newTime = this.currentTime + this._step * 10;
+    if (newTime > this._sliderMax - 1) {
+      newTime = this._sliderMax - 1;
+    }
+    this.currentTime = newTime;
   }
 
   jumpToEnd() {

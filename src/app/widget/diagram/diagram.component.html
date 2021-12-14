@@ -17,15 +17,26 @@
           <option value="">No data.</option>
           <optgroup label="general">
             <option value="speed">speed</option>
+            <option value="distance">distance</option>
+            <option value="16-usonic_h">height (Ultrasonic sensor)</option>
           </optgroup>
           <optgroup label="gps">
             <option value="2096-altitude">altitude</option>
+            <option value="2096-numGPS">#satellites</option>
           </optgroup>
           <optgroup label="battery">
             <option value="1710-cap_per">battery capacity</option>
+            <option value="1710-temp">battery temperature</option>
+          </optgroup>
+          <optgroup label="controller">
+            <option value="1000-ctrl_pitch">controller pitch</option>
+            <option value="1000-ctrl_roll">controller roll</option>
+            <option value="1000-ctrl_yaw">controller yaw</option>
+            <option value="1000-ctrl_thr">controller throttle</option>
           </optgroup>
         </select>
         <input type="color" style="margin-left: 10px" [(ngModel)]="dat.color" (change)="dataArrUpdated()">
+        <input type="checkbox" id="dataDisplayed{{i}}" [(ngModel)]="dat.displayed" (change)="dataArrUpdated()" style="margin-left: 10px"><label for="dataDisplayed{{i}}">active</label>
         <span class="material-icons grey" title="delete" style="cursor: pointer; margin-left: 10px" (click)="removeEntry(i)">delete_forever</span>
         <br/>
       </ng-container>

@@ -1,12 +1,12 @@
 <div>
-  <span>Zeit: {{flightDurationSeconds}}</span> <span style="padding-left: 50px;"></span> <label for="stepSizeSelect">Step size in {{useSeconds ? "seconds:&nbsp;&nbsp;&nbsp;" : "messages:"}} </label><select id="stepSizeSelect" [(ngModel)]="step">
+  <span style="padding-left: 50px;"></span> <label for="stepSizeSelect">Step size in {{useSeconds ? "seconds:&nbsp;&nbsp;&nbsp;" : "messages:"}} </label><select id="stepSizeSelect" [(ngModel)]="step">
   <option value="1">1</option>
   <option value="3">3</option>
   <option value="5">5</option>
   <option value="10">10</option>
   <option value="15">15</option>
 </select><span style="padding-left: 50px;"></span> <label for="stepSpeedSelect">Autoplay speed in seconds: </label><select id="stepSpeedSelect" [(ngModel)]="stepSpeed">
-  <option value="0.1">10x</option>
+  <!--<option value="0.1">10x</option>-->
   <option value="0.25">4x</option>
   <option value="0.5">2x</option>
   <option value="1">1x</option>
@@ -21,5 +21,5 @@
     <ng-container *ngIf="useSeconds"><ng-container *ngIf="flightDurationSeconds >= 3600">{{floor(_currentTime/3600, 1)}}:</ng-container>{{floor((_currentTime%3600)/60, 2)}}:{{floor(_currentTime%60, 2)}}</ng-container>
     <ng-container *ngIf="!useSeconds">{{currentTime}}</ng-container>
   </span>
-  <button (click)="jumpToStart()">|<</button><button (click)="previousStep()"><</button> <button (click)="playButtonClicked($event.target)" id="startButton" [disabled]="_currentTime===_sliderMax">start</button> <button (click)="nextStep()">></button><button (click)="jumpToEnd()">>|</button>
+  <button (click)="jumpToStart()">|<</button><button (click)="jumpPrevious()"><<</button><button (click)="previousStep()"><</button> <button (click)="playButtonClicked($event.target)" id="startButton" [disabled]="_currentTime===_sliderMax">start</button> <button (click)="nextStep()">></button><button (click)="jumpNext()">>></button><button (click)="jumpToEnd()">>|</button>
 </div>

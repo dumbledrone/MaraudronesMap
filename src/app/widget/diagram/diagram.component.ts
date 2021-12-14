@@ -48,7 +48,6 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
   }
 
   async prepareChartData() {
-    const chart: any = document.getElementById('infoChart');
     if(this.myChart)
       this.myChart.destroy();
     if(!this.globals.file)
@@ -63,6 +62,8 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         inst.drawChart(dataset);
     }
     for (let i = 0; i < this.data.length; i++) {
+      if(this.data[i].data === "" || !this.data[i].displayed)
+        continue;
       running++;
       let identifiers = this.data[i].data.split("-");
       if(this.dataCache[this.data[i].data]) {
@@ -90,9 +91,35 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
     function getDataFromDatabase(database: any, key: string) {
       database.where("fileId").equals(inst.globals.file?.id).toArray().then((res: any) => {
         let data: any[] = [];
-        res.forEach((dataEl: any, index: number) => {
-          data.push({x: index, y: dataEl[attribute]});
+        res.forEach((dataEl: any) => {
+          data.push({x: dataEl.messageNum, y: dataEl[attribute]});
         });
+        // @ts-ignore
+        inst.dataCache[key + "-" + attribute] = {data: data, name: attributePrintName};
+        attribute = attributePrintName;
+        inst.constructDataset(data, callback, attribute, color);
+      });
+    }
+    function getSpecialFromDatabase(database: any, key: string) {
+      database.where("fileId").equals(inst.globals.file?.id).toArray().then((res: any) => {
+        let data: any[] = [];
+        switch (key) {
+          case "speed":
+            res.forEach((dataEl: any) => {
+              data.push({
+                x: dataEl.messageNum,
+                y: Math.sqrt(Math.pow(dataEl.velN, 2) + Math.pow(dataEl.velE, 2) + Math.pow(dataEl.velD, 2))
+              });
+            });
+            break;
+          default:
+            res.forEach((dataEl: any) => {
+              data.push({
+                x: dataEl.messageNum, y: dataEl[key]
+              });
+            });
+            break;
+        }
         // @ts-ignore
         inst.dataCache[key + "-" + attribute] = {data: data, name: attributePrintName};
         attribute = attributePrintName;
@@ -101,6 +128,8 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
     }
     switch(database) {
       case "16":
+        if(attribute === "usonic_h")
+          attributePrintName = "height ultrasonic sensor (mm)";
         getDataFromDatabase(this.dexieDbService.ultrasonic, database);
         break;
       case "1000":
@@ -108,10 +137,14 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         break;
       case "1710":
         if(attribute === "cap_per")
-          attributePrintName = "battery capacity";
+          attributePrintName = "battery capacity (%)";
+        else if (attribute === "temp")
+          attributePrintName = "temp (°C)";
         getDataFromDatabase(this.dexieDbService.battery, database);
         break;
       case "2096":
+        if(attribute === "altitude")
+          attributePrintName = "altitude (m)";
         getDataFromDatabase(this.dexieDbService.gps, database);
         break;
       case "12":
@@ -125,6 +158,14 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         break;
       case "2256":
         getDataFromDatabase(this.dexieDbService.recMag, database);
+        break;
+      case "speed":
+        attributePrintName = "speed (m/s)";
+        getSpecialFromDatabase(this.dexieDbService.gps, database);
+        break;
+      case "distance":
+        attributePrintName = "distance (m)";
+        getSpecialFromDatabase(this.dexieDbService.gps, database);
         break;
     }
   }
@@ -160,6 +201,15 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
               threshold: 10
             },
           }
+        },
+        // @ts-ignore
+        tooltip: {
+          callbacks: {
+            label: function(context: any) {
+              console.log(context)
+              return "test";
+            }
+          }
         }
       }
     });
@@ -188,7 +238,7 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
   addEntry() {
     if(this.data.length >= MAXIMAL_NUMBER_OF_DATASETS)
       return;
-    this.data.push({data: "", color: "#000000"});
+    this.data.push({data: "", color: "#000000", displayed: true});
   }
 
   removeEntry(index: number) {
