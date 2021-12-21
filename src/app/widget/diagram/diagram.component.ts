@@ -112,6 +112,22 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
               });
             });
             break;
+          case "verticalSpeed":
+            res.forEach((dataEl: any) => {
+              data.push({
+                x: dataEl.messageNum,
+                y: dataEl.velD
+              });
+            });
+            break;
+          case "horizontalSpeed":
+            res.forEach((dataEl: any) => {
+              data.push({
+                x: dataEl.messageNum,
+                y: Math.sqrt(Math.pow(dataEl.velN, 2) + Math.pow(dataEl.velE, 2))
+              });
+            });
+            break;
           default:
             res.forEach((dataEl: any) => {
               data.push({
@@ -163,6 +179,14 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         attributePrintName = "speed (m/s)";
         getSpecialFromDatabase(this.dexieDbService.gps, database);
         break;
+      case "verticalSpeed":
+        attributePrintName = "vertical speed (m/s)";
+        getSpecialFromDatabase(this.dexieDbService.gps, database);
+        break;
+      case "horizontalSpeed":
+        attributePrintName = "horizontal speed (m/s)";
+        getSpecialFromDatabase(this.dexieDbService.gps, database);
+        break;
       case "distance":
         attributePrintName = "distance (m)";
         getSpecialFromDatabase(this.dexieDbService.gps, database);
@@ -179,9 +203,22 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
       },
       options: {
         showLine: true,
+        spanGaps: true,
+        animation: false,
+        maintainAspectRatio: false,
         scales: {
           y: {
             beginAtZero: true
+          },
+          x: {
+            ticks: {
+              display: false
+            }
+          }
+        },
+        layout: {
+          padding: {
+            right: 0
           }
         },
         plugins: {
@@ -216,6 +253,8 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
   }
 
   showGraphInFullscreen() {
+    if(this.inEditMode)
+      this.toggleGraphSettings()
     document.getElementById("infoChartBgDiv")?.classList.add("full-screen");
   }
 

@@ -23,6 +23,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatOptionModule} from "@angular/material/core";
 import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 import { DiagramComponent } from './widget/diagram/diagram.component';
+import { RawDataComponent } from './widget/raw-data/raw-data.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { DiagramComponent } from './widget/diagram/diagram.component';
     FileSelectorComponent,
     AppearenceDialogueComponent,
     AnomalyComponent,
-    DiagramComponent
+    DiagramComponent,
+    RawDataComponent
   ],
   imports: [
     BrowserModule,

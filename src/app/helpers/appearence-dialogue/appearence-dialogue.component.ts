@@ -32,13 +32,14 @@ export class AppearenceDialogueComponent implements OnInit {
       checkbox1: this.checkboxValues[1],
       checkbox2: this.checkboxValues[2],
       checkbox3: this.checkboxValues[3],
+      checkbox4: this.checkboxValues[4],
     });
     this.mapViews = [
-      {value: '1', viewValue: 'open Street Map'},
-      {value: '2', viewValue: 'google Street Map'},
-      {value: '3', viewValue: 'google Hybrid Map'},
-      {value: '4', viewValue: 'google Satellite Map'},
-      {value: '5', viewValue: 'google Terrain Map'},
+      {value: '1', viewValue: 'Open Street Map'},
+      {value: '2', viewValue: 'Google Street Map'},
+      {value: '3', viewValue: 'Google Hybrid Map'},
+      {value: '4', viewValue: 'Google Satellite Map'},
+      {value: '5', viewValue: 'Google Terrain Map'},
     ];
     this.lineColors = [
       {value: '0', viewValue: 'no coloring'},

@@ -1,5 +1,4 @@
-import Dexie from 'dexie';
-import {of} from "rxjs";
+import Dexie, {Table} from 'dexie';
 
 export class DroneWebGuiDatabase extends Dexie {
   // Declare implicit table properties.
@@ -48,6 +47,46 @@ export class DroneWebGuiDatabase extends Dexie {
     this.recMag = this.table("recMag");
     this.recMag.mapToClass(RecMagDbMessage);
   }
+
+  public getDatabaseForPackageId(key: string): Table | null {
+    switch(key) {
+      case "12":
+        return this.osdGeneral;
+      case "16":
+        return this.ultrasonic;
+      case "1000":
+        return this.controller;
+      case "1700":
+        return this.rcDebug;
+      case "1710":
+        return this.battery;
+      case "2048":
+        return this.imuAtti;
+      case "2096":
+        return this.gps;
+      case "2256":
+        return this.recMag;
+    }
+    return null;
+  }
+
+  public getAvailableDatabases(): DbInfo[] {
+    return [
+      {key: "12", database: this.osdGeneral},
+      {key: "16", database: this.ultrasonic},
+      {key: "1000", database: this.controller},
+      {key: "1700", database: this.rcDebug},
+      {key: "1710", database: this.battery},
+      {key: "2048", database: this.imuAtti},
+      {key: "2096", database: this.gps},
+      {key: "2256", database: this.recMag}
+    ];
+  }
+}
+
+interface DbInfo {
+  key: string;
+  database: Table;
 }
 
 interface IDbFile {
