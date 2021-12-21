@@ -1,16 +1,13 @@
-import {Component, Injectable} from "@angular/core";
+import {Injectable} from "@angular/core";
 import {
   BatteryDbMessage,
   ControllerDbMessage,
-  DbFile, DroneWebGuiDatabase,
+  DbFile, DbMessage, DroneWebGuiDatabase,
   GpsDbMessage, ImuAttiDbMessage, OsdGeneralDataDbMessage, RecMagDbMessage,
   UltrasonicDbMessage
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
 import Table = Dexie.Table;
-import {error} from "@angular/compiler/src/util";
-import {DomEvent} from "leaflet";
-import off = DomEvent.off;
 
 
 @Injectable({
@@ -35,6 +32,7 @@ export class Globals {
   private _imuAttiMessage: ImuAttiDbMessage | undefined;
   private _recMagMessage: RecMagDbMessage | undefined;
   private _lineType: LineType = LineType.none;
+  private _latestMessage: DbMessage | undefined;
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
     this._dbFiles = [];
@@ -120,6 +118,12 @@ export class Globals {
 
   public get file(): DbFile | null {
     return this._dbFile;
+  }
+
+  set latestMessage(mes: DbMessage | undefined) {}
+
+  public get latestMessage(): DbMessage | undefined {
+    return this._latestMessage;
   }
 
 
@@ -245,42 +249,56 @@ export class Globals {
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._gpsMessage = res.slice(-1).pop();
+      if(this._gpsMessage?.messageNum === messageId)
+        this._latestMessage = this._gpsMessage;
       onComplete();
     });
     this.dexieDbService.battery.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._batteryMessage = res.slice(-1).pop();
+      if(this._batteryMessage?.messageNum === messageId)
+        this._latestMessage = this._batteryMessage;
       onComplete();
     });
     this.dexieDbService.controller.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._controllerMessage = res.slice(-1).pop();
+      if(this._controllerMessage?.messageNum === messageId)
+        this._latestMessage = this._controllerMessage;
       onComplete();
     });
     this.dexieDbService.ultrasonic.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._uSonicMessage = res.slice(-1).pop();
+      if(this._uSonicMessage?.messageNum === messageId)
+        this._latestMessage = this._uSonicMessage;
       onComplete();
     });
     this.dexieDbService.osdGeneral.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._osdGeneralMessage = res.slice(-1).pop();
+      if(this._osdGeneralMessage?.messageNum === messageId)
+        this._latestMessage = this._osdGeneralMessage;
       onComplete();
     });
     this.dexieDbService.imuAtti.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._imuAttiMessage = res.slice(-1).pop();
+      if(this._imuAttiMessage?.messageNum === messageId)
+        this._latestMessage = this._imuAttiMessage;
       onComplete();
     });
     this.dexieDbService.recMag.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._recMagMessage = res.slice(-1).pop();
+      if(this._recMagMessage?.messageNum === messageId)
+        this._latestMessage = this._recMagMessage;
       onComplete();
     });
   }
@@ -334,39 +352,9 @@ export class Globals {
       if(!supportedKeys.includes(key))
         return;
       runningImports++;
-      switch(key) {
-        case "16":
-          bulkAddInChunks(inst.dexieDbService.ultrasonic, filteredData[key], 10000,
-            () => completeFunc(key)).then(() => {});
-          break;
-        case "1000":
-          bulkAddInChunks(inst.dexieDbService.controller, filteredData[key], 10000,
-            () => completeFunc(key)).then(() => {});
-          break;
-        case "1710":
-          bulkAddInChunks(inst.dexieDbService.battery, filteredData[key], 10000,
-            () => completeFunc(key)).then(() => {});
-          break;
-        case "2096":
-          bulkAddInChunks(inst.dexieDbService.gps, filteredData[key], 5000,
-            () => completeFunc(key)).then(() => {});
-          break;
-        case "12":
-          bulkAddInChunks(inst.dexieDbService.osdGeneral, filteredData[key], 5000,
-            () => completeFunc(key)).then(() => {});
-          break;
-        case "1700":
-          bulkAddInChunks(inst.dexieDbService.rcDebug, filteredData[key], 5000,
-            () => completeFunc(key)).then(() => {});
-          break;
-        case "2048":
-          bulkAddInChunks(inst.dexieDbService.imuAtti, filteredData[key], 5000,
-            () => completeFunc(key)).then(() => {});
-          break;
-        case "2256":
-          bulkAddInChunks(inst.dexieDbService.recMag, filteredData[key], 5000,
-            () => completeFunc(key)).then(() => {});
-          break;
+      let db = this.dexieDbService.getDatabaseForPackageId(key);
+      if(db) {
+        bulkAddInChunks(db, filteredData[key], 10000, () => completeFunc(key)).then(() => {});
       }
     });
   }
@@ -374,9 +362,10 @@ export class Globals {
   public deleteFile() {
     let inst = this;
     let ct = 0;
+    let tables = this.dexieDbService.getAvailableDatabases();
     function complete() {
       ct++;
-      if(ct === 6) {// Update if additional message types are added
+      if(ct === tables.length) {
         inst._dbFile = null;
         inst.updated();
         inst.loadDbFiles();
@@ -385,14 +374,7 @@ export class Globals {
     }
     inst.loadCallback();
     this.dexieDbService.files.delete(this._fileId).then();
-    this.dexieDbService.gps.where('fileId').equals(this._fileId).delete().then(() => complete());
-    this.dexieDbService.controller.where('fileId').equals(this._fileId).delete().then(() => complete());
-    this.dexieDbService.battery.where('fileId').equals(this._fileId).delete().then(() => complete());
-    this.dexieDbService.ultrasonic.where('fileId').equals(this._fileId).delete().then(() => complete());
-    this.dexieDbService.osdGeneral.where('fileId').equals(this._fileId).delete().then(() => complete());
-    this.dexieDbService.rcDebug.where('fileId').equals(this._fileId).delete().then(() => complete());
-    this.dexieDbService.imuAtti.where('fileId').equals(this._fileId).delete().then(() => complete());
-    this.dexieDbService.recMag.where('fileId').equals(this._fileId).delete().then(() => complete());
+    tables.forEach(t => t.database.where('fileId').equals(this._fileId).delete().then(() => complete()));
   }
 
   private createTrack() {
