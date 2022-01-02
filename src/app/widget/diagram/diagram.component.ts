@@ -128,6 +128,14 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
               });
             });
             break;
+          case "D2H":
+            res.forEach((dataEl: any) => {
+              data.push({
+                x: dataEl.messageNum,
+                y: Math.sqrt(Math.pow(dataEl.D2H_x, 2) + Math.pow(dataEl.D2H_y, 2))
+              });
+            });
+            break;
           default:
             res.forEach((dataEl: any) => {
               data.push({
@@ -149,6 +157,10 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         getDataFromDatabase(this.dexieDbService.ultrasonic, database);
         break;
       case "1000":
+        if(attribute === "D2H_x")
+          attributePrintName = "Distance to Home (x; in m)";
+        if(attribute === "D2H_y")
+          attributePrintName = "Distance to Home (y; in m)";
         getDataFromDatabase(this.dexieDbService.controller, database);
         break;
       case "1710":
@@ -190,6 +202,10 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
       case "distance":
         attributePrintName = "distance (m)";
         getSpecialFromDatabase(this.dexieDbService.gps, database);
+        break;
+      case "D2H":
+        attributePrintName = "Distance to Home (m)";
+        getSpecialFromDatabase(this.dexieDbService.controller, database);
         break;
     }
   }

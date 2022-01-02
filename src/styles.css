@@ -8,3 +8,14 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; overflow: h
   -ms-user-select: none;
   user-select: none;
 }
+
+div.legendLabel {
+  width: 1em;
+  height: 1em;
+  grid-column: 1;
+}
+
+span.legendValue {
+  height: 1em;
+  grid-column: 2;
+}

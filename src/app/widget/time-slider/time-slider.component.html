@@ -17,9 +17,9 @@
 </select>
   <label style="padding-left: 50px;">Use Seconds<input type="checkbox" id="useSeconds" [(ngModel)]="useSeconds"></label>
   <input type="range" min="0" [step]="step" [max]="_sliderMax" [value]="currentTime" (change)="timeSliderChanged($event)" style="width: 100%">
-  <span>
+  <span style="width: 105px; display: inline-block">
     <ng-container *ngIf="useSeconds"><ng-container *ngIf="flightDurationSeconds >= 3600">{{floor(_currentTime/3600, 1)}}:</ng-container>{{floor((_currentTime%3600)/60, 2)}}:{{floor(_currentTime%60, 2)}}</ng-container>
-    <ng-container *ngIf="!useSeconds">{{currentTime}}</ng-container>
+    <ng-container *ngIf="!useSeconds"><input type="number" [(ngModel)]="currentTime" [max]="_sliderMax" [disabled]="useSeconds" style="width: 90%"></ng-container>
   </span>
   <button (click)="jumpToStart()">|<</button><button (click)="jumpPrevious()"><<</button><button (click)="previousStep()"><</button> <button (click)="playButtonClicked($event.target)" id="startButton" [disabled]="_currentTime===_sliderMax">start</button> <button (click)="nextStep()">></button><button (click)="jumpNext()">>></button><button (click)="jumpToEnd()">>|</button>
 </div>

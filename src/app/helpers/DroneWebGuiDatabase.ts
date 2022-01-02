@@ -102,8 +102,11 @@ interface IDbFile {
   maxLongitude: number;
   altitude: number;
   gpsOffset: number;
-  gpsOffsetId: number;
   timeOffset: number;
+  timeUntilGPS: number;
+  timeUntilTakeOff: number;
+  flightDate: string;
+  flightStartTime: string;
   track: any[];
 }
 
@@ -120,13 +123,17 @@ export class DbFile {
   public maxLongitude: number;
   public altitude: number;
   public gpsOffset: number;
-  public gpsOffsetId: number;
   public timeOffset: number;
+  public timeUntilGPS: number;
+  public timeUntilTakeOff: number;
+  public flightDate: string;
+  public flightStartTime: string;
   public track: any[];
 
   constructor(fileName: string, messageCount: number, flightDuration: number, startTime: number, id: number,
               minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number, altitude: number,
-              gpsOffset: number, track: any[], fileDuration: number, timeOffset: number, gpsOffsetId: number) {
+              gpsOffset: number, track: any[], fileDuration: number, timeOffset: number, timeUntilGPS: number,
+              timeUntilTakeOff: number, flightDate: string, flightStartTime: string) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.flightDuration = flightDuration;
@@ -141,7 +148,10 @@ export class DbFile {
     this.track = track;
     this.fileDuration = fileDuration;
     this.timeOffset = timeOffset;
-    this.gpsOffsetId = gpsOffsetId;
+    this.timeUntilGPS = timeUntilGPS;
+    this.timeUntilTakeOff = timeUntilTakeOff;
+    this.flightDate = flightDate;
+    this.flightStartTime = flightStartTime;
   }
 }
 
@@ -249,22 +259,53 @@ export class ControllerDbMessage extends DbMessage {
 export class BatteryDbMessage extends DbMessage {
   cap_per: number;
   temp: number;
+  ad_v: number;
+  r_time: number; // TODO calculated time left
+  ave_I: number;
+  vol_t: number;
+  pack_ve: number
+  I: number;
+  r_cap: number;
+  right: number;
+  l_cell: number;
+  dyna_cnt: number;
+  f_cap: number;
+  out_ctl: number;
+  out_ctl_f: number;
 
-  constructor(id: number, fileId: number, messageNum: number, offset: number, cap_per: number, temp: number) {
+  constructor(id: number, fileId: number, messageNum: number, offset: number, cap_per: number, temp: number,
+              ad_v: number, r_time: number, ave_I: number, vol_t: number, pack_ve: number, r_cap: number, l_cell: number,
+              dyna_cnt: number, f_cap: number, out_ctl: number, out_ctl_f: number, I: number, right: number) {
     super(id, fileId, messageNum, offset);
     this.cap_per = cap_per;
     this.temp = temp;
+    this.ad_v = ad_v;
+    this.r_time = r_time;
+    this.ave_I = ave_I;
+    this.vol_t = vol_t;
+    this.pack_ve = pack_ve;
+    this.I = I;
+    this.r_cap = r_cap;
+    this.right = right;
+    this.l_cell = l_cell;
+    this.dyna_cnt = dyna_cnt;
+    this.f_cap = f_cap;
+    this.out_ctl = out_ctl;
+    this.out_ctl_f = out_ctl_f;
   }
 }
 
 export class UltrasonicDbMessage extends DbMessage {
   usonic_h: number;
   usonic_flag: number;
+  usonic_cnt: number;
 
-  constructor(id: number, fileId: number, messageNum: number, offset: number, usonic_h: number, usonic_flag: number) {
+  constructor(id: number, fileId: number, messageNum: number, offset: number, usonic_h: number, usonic_flag: number,
+              usonic_cnt: number) {
     super(id, fileId, messageNum, offset);
     this.usonic_h = usonic_h;
     this.usonic_flag = usonic_flag;
+    this.usonic_cnt = usonic_cnt;
   }
 }
 
@@ -287,8 +328,8 @@ export class OsdGeneralDataDbMessage extends DbMessage {
   controller_state_ext: number;
   ctrl_tick: number;
   ultrasonic_height: number;
-  motor_startup_time: number;
-  motor_startup_times: number;
+  motor_startup_time: number; // Time the motor was on
+  motor_startup_times: number; // #times the motor was started
   bat_alarm1: number;
   bat_alarm2: number;
   version_match: number;

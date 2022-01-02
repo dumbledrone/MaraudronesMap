@@ -6,7 +6,7 @@ import {global} from "@angular/compiler/src/util";
 import {AnomalyComponent} from "./widget/anomaly/anomaly.component";
 import {DroneWebGuiDatabase} from "./helpers/DroneWebGuiDatabase";
 
-const NUMBER_OF_WIDGETS = 5;
+const NUMBER_OF_WIDGETS = 6;
 
 @Component({
   selector: 'app-root',
@@ -71,6 +71,8 @@ export class AppComponent implements OnInit {
     document.getElementById("infos3")?.style.display = this._localStorageValues[3] ? "block" : "none";
     //@ts-ignore
     document.getElementById("infos4")?.style.display = this._localStorageValues[4] ? "block" : "none";
+    //@ts-ignore
+    document.getElementById("infos5")?.style.display = this._localStorageValues[5] ? "block" : "none";
     let tmp = localStorage.getItem("mapView");
     this.mapType = tmp===null? 1 : parseInt(tmp);
     tmp = localStorage.getItem("lineColor");

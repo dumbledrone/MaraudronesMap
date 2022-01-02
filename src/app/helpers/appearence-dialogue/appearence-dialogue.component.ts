@@ -33,6 +33,7 @@ export class AppearenceDialogueComponent implements OnInit {
       checkbox2: this.checkboxValues[2],
       checkbox3: this.checkboxValues[3],
       checkbox4: this.checkboxValues[4],
+      checkbox5: this.checkboxValues[5],
     });
     this.mapViews = [
       {value: '1', viewValue: 'Open Street Map'},
@@ -44,7 +45,7 @@ export class AppearenceDialogueComponent implements OnInit {
     this.lineColors = [
       {value: '0', viewValue: 'no coloring'},
       {value: '1', viewValue: 'course of time'},
-      {value: '2', viewValue: 'height'},
+      {value: '2', viewValue: 'altitude'},
       {value: '3', viewValue: 'horizontal speed'},
     ];
   }

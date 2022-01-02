@@ -138,14 +138,31 @@ export class Globals {
       inst.loadCallback();
       let data = JSON.parse(<string>jsonFileReader.result);
       data = data.sort((a: any, b: any) => a.messageid < b.messageid);
+      let usonicInd = data.indexOf(data.find((d: any) => d.pktId === 16 && d.usonic_h > 110));
+      let usonicTime = data.find((d: any, ind: number) => d.pktId === 2096 && ind > usonicInd).time;
       let gpsData = data.filter((d: any) => d.pktId === 2096);
+      let firstGPSMes = gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0);
+      let gpsOffset = data.indexOf(firstGPSMes);
+      let gpsDataOffset = gpsData.indexOf(firstGPSMes);
       gpsData.forEach((g: any) => g.distance = 0);
-      let gpsOffset = gpsData.indexOf(gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0));
+      let timeSeconds = timeStringToSecs(gpsData[gpsDataOffset].time);
+      let time = "";
+      if(timeSeconds > 3600) {
+        time += Math.floor(timeSeconds/3600) + ":";
+      }
+      let mins = Math.floor((timeSeconds % 3600)/60);
+      time += mins < 10 ? "0" + mins : mins;
+      time += ":";
+      let secs = Math.floor(timeSeconds%60);
+      time += secs < 10 ? "0" + secs : secs;
+      let dateString = gpsData[gpsDataOffset+1].date.toString();
+      let date = new Date();
+      date.setFullYear(parseInt(dateString.substr(0, 4)),
+        parseInt(dateString.substr(4,2)),
+        parseInt(dateString.substr(6, 2)));
       let altitude = 0;
-      let firstGpsId = 0;
       if (gpsData[gpsOffset]) {
         altitude = gpsData[gpsOffset].altitude;
-        firstGpsId =  gpsData[gpsOffset].messageId;
         let distance = 0;
         for (let i = gpsOffset; i+1 < gpsData.length; i++) {
           let d1 = gpsData[i], d2 = gpsData[i+1];
@@ -167,6 +184,8 @@ export class Globals {
       }
       let seconds = timeCol.length;
       let timeOffset = flightTime - seconds;
+      let timeUntilGPS = timeStringToSecs(gpsData[gpsDataOffset-1].time) - timeCol[0] + timeOffset;
+      let timeUntilTakeOff = timeStringToSecs(usonicTime) - timeCol[0] + timeOffset;
       console.log(new Date());
       let minLat = Math.min(...latCol);
       let maxLat = Math.max(...latCol);
@@ -184,8 +203,11 @@ export class Globals {
         maxLongitude: !isFinite(matLong) ? 11.02728355453469 : matLong,
         altitude: altitude,
         gpsOffset: gpsOffset,
-        gpsOffsetId: firstGpsId,
         timeOffset: timeOffset,
+        timeUntilGPS: timeUntilGPS,
+        timeUntilTakeOff: timeUntilTakeOff,
+        flightDate: date.toDateString(),
+        flightStartTime: time,
         track: []
       }).then((res: number) => {
         inst.loadDbFiles();
@@ -388,7 +410,7 @@ export class Globals {
         if((mes.latitude === 0 && mes.longitude === 0) || isNaN(mes.latitude) || isNaN(mes.longitude)) //remove NaN and (0,0)
           return;
         vertices.push({lat: mes.latitude, long: mes.longitude, ind: ind, mesId: mes.id, altitude: mes.altitude,
-          speed: Math.sqrt(Math.pow(mes.velE, 2) + Math.pow(mes.velN, 2))});
+          speed: Math.sqrt(Math.pow(mes.velE, 2) + Math.pow(mes.velN, 2)), second: mes.second});
       });
       if(vertices.length === 0) {
         window.alert('There are no gps messages in this file.');

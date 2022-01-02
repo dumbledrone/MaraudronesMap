@@ -20,6 +20,7 @@ export class InfoComponent implements OnInit, DroneMapWidget {
   vSpeed = 0;
   hSpeed = 0;
   distance = 0;
+  vert_distance = 0;
 
   constructor(private globals: Globals) {
     this.globals.subscribe(this);
@@ -49,10 +50,12 @@ export class InfoComponent implements OnInit, DroneMapWidget {
     this.relative_height = 0;
     this.uSonic_height = 0;
     this.uSonic_valid = false;
+    this.vert_distance = 0;
     let gpsMes = this.globals.gpsMessage;
     let batMes = this.globals.batteryMessage;
     let usMes = this.globals.uSonicMessage;
     let osMes = this.globals.osdGeneralMessage;
+    let controllerMes = this.globals.controllerMessage;
     if(gpsMes) {
       this.longitude = gpsMes.longitude;
       this.latitude = gpsMes.latitude;
@@ -72,6 +75,9 @@ export class InfoComponent implements OnInit, DroneMapWidget {
     }
     if(osMes) {
       this.relative_height = osMes.relative_height;
+    }
+    if(controllerMes) {
+      this.vert_distance = Math.sqrt(Math.pow(controllerMes.D2H_x, 2) + Math.pow(controllerMes.D2H_y, 2));
     }
   }
 }

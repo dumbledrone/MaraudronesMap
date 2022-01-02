@@ -3,7 +3,7 @@ import {DroneMapWidget, Globals, LineType} from "../../global";
 import * as L from "leaflet";
 import {GeoJSON, LatLng} from "leaflet";
 import {RotatedMarker} from "leaflet-marker-rotation";
-import {getOrientationFromImuAttiMessage, getOrientationFromRecMagMessage} from "../../helpers/functions";
+import {getOrientationFromRecMagMessage} from "../../helpers/functions";
 
 
 // @ts-ignore
@@ -23,6 +23,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
   orientation: number = 0;
   currentLayer: any;
   geoTrack: GeoJSON | undefined;
+  mapLegend!: HTMLDivElement;
 
   @Input() mapType: number = 1;
 
@@ -114,6 +115,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
   }
 
   ngOnInit(): void {
+    this.mapLegend = document.getElementById("map-legend") as HTMLDivElement;
   }
 
   fileChanged(): void {
@@ -125,6 +127,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
       this.drawLine();
     } else {
       this.geoTrack?.removeFrom(this.myMap);
+      this.mapLegend.innerText = "No legend available.";
     }
   }
 
@@ -161,6 +164,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     this.geoTrack?.removeFrom(this.myMap);
     if(this.globals.file === undefined || this.globals.file.track === undefined || this.globals.file.track.length === 0)
       return;
+    this.mapLegend.innerText = "No legend available.";
 
     //create vertice pairs for lines from track
     let trackVerticePairs: any [] = [];
@@ -180,6 +184,7 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     let colorScale_track_retObject: any = this.editAccordingToType(this.globals.lineType, trackGeoJSON);
     let colorScale: typeof ColorScale = colorScale_track_retObject["colorScale"];
     trackGeoJSON = colorScale_track_retObject["geoJson"];
+    this.createLegendForType(this.globals.lineType);
 
     //color the track
     // @ts-ignore
@@ -230,6 +235,84 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         colorScale = new ColorScale(0,this.globals.file.track.length - 1, ['#000000','#000000']);
     }
     return {"geoJson":trackGeoJson, "colorScale":colorScale};
+  }
+
+  private createLegendForType(type:LineType) {
+    if(!this.globals.file)
+      return;
+    this.mapLegend.innerText = "";
+    let colorScale: typeof ColorScale;
+    let numLabels = 10;
+    switch (type) {
+      case LineType.height:
+        let heights = this.globals.file.track.map(t => t.altitude);
+        let minHeight = Math.min(...heights);
+        let maxHeight = Math.max(...heights);
+        colorScale = new ColorScale(minHeight, maxHeight, ["#00ff00", '#0000ff']);
+        let heightDelta = maxHeight - minHeight;
+        let digits = heightDelta > 15 ? 0 : 1;
+        for (let i = 0; i <= numLabels; i++) {
+          let val = heightDelta / numLabels * i + minHeight;
+          this.addLegendEntry(colorScale.getColor(val).toHexString(), val.toFixed(digits).toString(), "m");
+        }
+        break;
+      case LineType.time:
+        colorScale = new ColorScale(0,this.globals.file.track.length - 1, ["#ff0014", '#ffc300', '#00ff00', '#0000ff']);
+        let duration = this.globals.file.fileDuration;
+        let stepSize = 10;
+        if(duration > 1200) { // 20+ min
+          stepSize = 240;
+        } else if(duration > 900) { // 15-20 min
+          stepSize = 120;
+        } else if(duration > 600) { // 10-15 min
+          stepSize = 60;
+        } else if (duration > 300) { // 5-10 min
+          stepSize = 60;
+        }else if (duration > 60) { // 1-5 min
+          stepSize = 30;
+        } // implicit else < 1 min
+        for (let i = 0; i < duration - (stepSize/2); i+=stepSize) {
+          this.addLegendEntry(colorScale.getColor(this.mesNumForDuration(i)).toHexString(),
+            MapComponent.timeToTimeString(i, stepSize), "min");
+        }
+        this.addLegendEntry(colorScale.getColor(this.mesNumForDuration(duration)).toHexString(),
+          MapComponent.timeToTimeString(duration, stepSize, true), "min");
+        break;
+      case LineType.speed:
+        let speeds = this.globals.file.track.map(t => t.speed);
+        let maxSpeed = Math.max(...speeds);
+        colorScale = new ColorScale(0, maxSpeed, ["#00ff00", '#0000ff']);
+        for (let i = 0; i <= numLabels; i++) {
+          let val = maxSpeed / numLabels * i;
+          this.addLegendEntry(colorScale.getColor(val).toHexString(), val.toFixed(1).toString(), "m/s");
+        }
+        break;
+      case LineType.none:
+      default:
+        this.addLegendEntry("#000000", "flight", "");
+    }
+  }
+
+  private static timeToTimeString(time: number, stepSize: number, isLast = false): string {
+    if(isLast || stepSize < 60) {
+      return Math.floor(time / 60) + ":" + (time % 60 === 0 ? "00" : time % 60);
+    }
+    return Math.floor(time / 60).toString();
+  }
+
+  private mesNumForDuration(duration: number) {
+    return this.globals.file?.track.findIndex(m => m.second === duration);
+  }
+
+  private addLegendEntry(color: string, value: string, unit: string) {
+    let label = document.createElement("div");
+    label.style.backgroundColor = color;
+    this.mapLegend.appendChild(label);
+    label.classList.add("legendLabel");
+    let valueSpan = document.createElement("span");
+    valueSpan.innerText = value + " " + unit;
+    this.mapLegend.appendChild(valueSpan);
+    valueSpan.classList.add("legendValue");
   }
 }
 

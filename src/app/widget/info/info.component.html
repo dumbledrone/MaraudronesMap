@@ -1,5 +1,5 @@
+<p><b>general Info</b></p>
 <div id="infoDiv">
-  <p><b>general Info</b></p>
   <span class="label">
     <span class="material-icons grey" title="longitude">gps_fixed</span>
   </span>
@@ -23,6 +23,10 @@
     <ng-container *ngIf="uSonic_valid">{{(uSonic_height/10)-10 | number: "1.0-0"}} cm</ng-container>
     <ng-container *ngIf="!uSonic_valid"> -- cm</ng-container>
   </span>
+  <span class="label">
+    <span class="material-icons grey rccw" title="vertical distance to home">expand</span>
+  </span>
+  <span class="value">{{vert_distance | number: "1.2-2"}} m</span>
   <span class="label">
     <span class="material-icons grey" title="vertical speed">flight</span>
   </span>

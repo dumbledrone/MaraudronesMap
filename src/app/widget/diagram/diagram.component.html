@@ -20,6 +20,7 @@
             <option value="verticalSpeed">vertical speed</option>
             <option value="horizontalSpeed">horizontal speed</option>
             <option value="distance">distance</option>
+            <option value="D2H">Vertical distance to Home</option>
             <option value="16-usonic_h">height (Ultrasonic sensor)</option>
           </optgroup>
           <optgroup label="gps">
@@ -29,12 +30,18 @@
           <optgroup label="battery">
             <option value="1710-cap_per">battery capacity</option>
             <option value="1710-temp">battery temperature</option>
+            <option value="1710-r_time">return time</option>
           </optgroup>
           <optgroup label="controller">
             <option value="1000-ctrl_pitch">controller pitch</option>
             <option value="1000-ctrl_roll">controller roll</option>
             <option value="1000-ctrl_yaw">controller yaw</option>
             <option value="1000-ctrl_thr">controller throttle</option>
+            <option value="1000-D2H_x">Vertical distance to Home (x)</option>
+            <option value="1000-D2H_y">Vertical distance to Home (y)</option>
+          </optgroup>
+          <optgroup label="OsdGeneral">
+            <option value="12-gohome_landing_reason">go home landing reason</option>
           </optgroup>
         </select>
         <input type="color" style="margin-left: 10px" [(ngModel)]="dat.color" (change)="dataArrUpdated()">

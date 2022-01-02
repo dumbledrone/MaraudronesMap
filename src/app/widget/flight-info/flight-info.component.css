@@ -1,4 +1,4 @@
-#infoDiv {
+#flightInfoDiv {
   display: grid;
   grid-template-columns: 50px 1fr;
   height: fit-content;
@@ -20,8 +20,4 @@ span.grey {
 
 .material-icons {
   cursor: help;
-}
-
-.rccw {
-  transform: rotate(90deg);
 }

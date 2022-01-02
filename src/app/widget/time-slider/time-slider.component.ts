@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {DroneMapWidget, Globals} from "../../global";
+import {DroneWebGuiDatabase} from "../../helpers/DroneWebGuiDatabase";
 
 const STEP_KEY = "stepSize";
 const STEP_SPEED_KEY = "stepSpeed";
@@ -22,7 +23,7 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   _sliderMax: number = 0;
   _offset = 0;
 
-  constructor(protected globals: Globals) {
+  constructor(protected globals: Globals, private database: DroneWebGuiDatabase) {
     this.globals.subscribe(this);
     let step = localStorage.getItem(STEP_KEY);
     if(step)
@@ -33,6 +34,16 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
     let useSeconds = localStorage.getItem(USE_SECONDS_KEY);
     if(useSeconds)
       this.useSeconds = (useSeconds === 'true');
+    document.addEventListener("setTimeEvent", (event) => {
+      if(this.useSeconds && window.confirm("This will disable the use seconds option.")) {
+        this.useSeconds = false;
+      }
+      if(this.useSeconds) {
+        return;
+      }
+      // @ts-ignore
+      this.currentTime = event.detail.messageNum;
+    });
   }
 
   ngOnInit(): void {
@@ -46,12 +57,19 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
       this.flightDurationSeconds = this.globals.file.fileDuration;
       this.flightMessagesNumber = this.globals.file.messageCount;
       this._gpsOffset = this.globals.file.gpsOffset;
+      if(this._useSeconds) {
+        this.getSecondFromGpsMessageNum(this.globals.file.gpsOffset, (sec: number) => {
+          this.currentTime = sec;
+        });
+      } else {
+        this.currentTime = this._gpsOffset;
+      }
     } else {
       this.flightDurationSeconds = 0;
       this.flightMessagesNumber = 0;
       this._gpsOffset = 0;
+      this.currentTime = this._gpsOffset;
     }
-    this.currentTime = this._gpsOffset;
     this.updateSlider();
   }
   fileListChanged(): void { }
@@ -79,10 +97,41 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
   }
 
   set useSeconds(val: boolean) {
-    this._useSeconds = val;
+    let inst = this;
+    inst._useSeconds = val;
     localStorage.setItem(USE_SECONDS_KEY, val.toString());
-    this.updateSlider();
-    // TODO get secs from message num / get messagenum from secs
+
+    if (this._useSeconds) {
+      let gpsId = this.globals.gpsMessage?.messageNum;
+      if(!gpsId)
+        gpsId = 0;
+      // get nearest second (before) from db
+      this.getSecondFromGpsMessageNum(gpsId, (sec: number) => {
+        this.currentTime = sec;
+        inst.updateSlider();
+      })
+    } else { // get messageNum from second
+      if(this.globals.gpsMessage) {
+        this.currentTime = this.globals.gpsMessage.messageNum;
+      }
+      inst.updateSlider();
+    }
+  }
+
+  getSecondFromGpsMessageNum(messageNum: number, cb: any) {
+    let inst = this;
+    if(!inst.globals.file) {
+      cb(0);
+      return;
+    }
+    this.database.gps.where('[fileId+messageNum]')
+      .between([inst.globals.file.id, messageNum - 1000], [inst.globals.file.id,  messageNum])
+      .and(g => g.second !== -1).sortBy('messageNum').then(res => {
+      let mes = res.pop();
+      if(mes)
+        return cb(mes.second);
+      cb(0);
+    });
   }
 
   get step() {
