@@ -2,12 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import {DroneMapWidget, Globals} from "../../global";
 import Chart, {ChartDataset} from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import {DroneWebGuiDatabase} from "../../helpers/DroneWebGuiDatabase";
+import {DbInfo, DroneWebGuiDatabase} from "../../helpers/DroneWebGuiDatabase";
 
 Chart.register(zoomPlugin);
 
 const DIAGRAM_DATA_KEY = "diagramData";
 const MAXIMAL_NUMBER_OF_DATASETS = 5;
+const SHOW_ALL_DATA_KEY = "showAllData";
 
 @Component({
   selector: 'app-diagram',
@@ -20,8 +21,13 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
   data: any[] = [];
   dataCache: any[] = [];
   cacheFileId: number = -1;
+  availableDBs: DbInfo[] = [];
+  showAllData: boolean = false;
 
-  constructor(private globals: Globals, private dexieDbService: DroneWebGuiDatabase) { }
+  constructor(private globals: Globals, private dexieDbService: DroneWebGuiDatabase) {
+    this.availableDBs = dexieDbService.getAvailableDatabases();
+    this.showAllData = localStorage.getItem(SHOW_ALL_DATA_KEY) === "true";
+  }
 
   ngOnInit(): void {
     this.globals.subscribe(this);
@@ -45,6 +51,10 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
   }
 
   update(): void {
+  }
+
+  saveShowDataState() {
+    localStorage.setItem(SHOW_ALL_DATA_KEY, this.showAllData.toString());
   }
 
   async prepareChartData() {
@@ -186,6 +196,12 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         break;
       case "2256":
         getDataFromDatabase(this.dexieDbService.recMag, database);
+        break;
+      case "10090":
+        getDataFromDatabase(this.dexieDbService.escData, database);
+        break;
+      case "1307":
+        getDataFromDatabase(this.dexieDbService.motorCtrl, database);
         break;
       case "speed":
         attributePrintName = "speed (m/s)";

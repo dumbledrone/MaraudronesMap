@@ -2,8 +2,8 @@ import {Injectable} from "@angular/core";
 import {
   BatteryDbMessage,
   ControllerDbMessage,
-  DbFile, DbMessage, DroneWebGuiDatabase,
-  GpsDbMessage, ImuAttiDbMessage, OsdGeneralDataDbMessage, RecMagDbMessage,
+  DbFile, DbMessage, DroneWebGuiDatabase, EscDataDbMessage,
+  GpsDbMessage, ImuAttiDbMessage, MotorCtrlDbMessage, OsdGeneralDataDbMessage, RecMagDbMessage,
   UltrasonicDbMessage
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
@@ -31,6 +31,8 @@ export class Globals {
   private _osdGeneralMessage: OsdGeneralDataDbMessage | undefined;
   private _imuAttiMessage: ImuAttiDbMessage | undefined;
   private _recMagMessage: RecMagDbMessage | undefined;
+  private _escDataMessage: EscDataDbMessage | undefined;
+  private _motorCtrlMessage: MotorCtrlDbMessage | undefined;
   private _lineType: LineType = LineType.none;
   private _latestMessage: DbMessage | undefined;
 
@@ -112,6 +114,18 @@ export class Globals {
 
   public get recMagMessage(): RecMagDbMessage | undefined {
     return this._recMagMessage;
+  }
+
+  set escDataMessage(escDataMessage: EscDataDbMessage | undefined) {}
+
+  public get escDataMessage(): EscDataDbMessage | undefined {
+    return this._escDataMessage;
+  }
+
+  set motorCtrlMessage(motorCtrlMessage: MotorCtrlDbMessage | undefined) {}
+
+  public get motorCtrlMessage(): MotorCtrlDbMessage | undefined {
+    return this._motorCtrlMessage;
   }
 
   set file(file: DbFile | null) {}
@@ -234,6 +248,8 @@ export class Globals {
       this._osdGeneralMessage = undefined;
       this._imuAttiMessage = undefined;
       this._recMagMessage = undefined;
+      this._escDataMessage = undefined;
+      this._motorCtrlMessage = undefined;
       this.fileChanged();
       return;
     }
@@ -323,6 +339,22 @@ export class Globals {
         this._latestMessage = this._recMagMessage;
       onComplete();
     });
+    this.dexieDbService.escData.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._escDataMessage = res.slice(-1).pop();
+      if(this._escDataMessage?.messageNum === messageId)
+        this._latestMessage = this._escDataMessage;
+      onComplete();
+    });
+    this.dexieDbService.motorCtrl.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._motorCtrlMessage = res.slice(-1).pop();
+      if(this._motorCtrlMessage?.messageNum === messageId)
+        this._latestMessage = this._motorCtrlMessage;
+      onComplete();
+    });
   }
 
   public loadMessagesBySecond(second: number) {
@@ -369,7 +401,7 @@ export class Globals {
         inst.finishLoadingCallback();
       }
     }
-    let supportedKeys = ["2096", "16", "1000", "1710", "12", "1700", "2048", "2256"];
+    let supportedKeys = this.dexieDbService.getAvailableDatabases().map(d => d.key);
     keys.forEach(key => {
       if(!supportedKeys.includes(key))
         return;

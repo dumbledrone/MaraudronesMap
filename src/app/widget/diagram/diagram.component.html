@@ -10,40 +10,59 @@
     <span class="material-icons grey fullscreen-button" title="reset zoom" style="cursor: pointer; margin: 10px; float: right" (click)="resetZoom()">zoom_out_map</span>
     <canvas id="infoChart"></canvas>
     <div id="settingsDiv" style="display: none" class="noSelect">
+      <input type="checkbox" id="showAllData" [(ngModel)]="showAllData" (change)="saveShowDataState()"><label>Enable raw data selection</label><br/>
       <span class="material-icons grey" title="add data" style="cursor: pointer; margin: 10px; float: right" (click)="addEntry()">add_box</span>
       <div id="dataSettingsDiv"></div>
       <ng-container *ngFor="let dat of data; let i = index">
-        <select [(ngModel)]="dat.data" style="margin-left: 10px" (change)="dataArrUpdated()">
-          <option value="">No data.</option>
-          <optgroup label="general">
-            <option value="speed">speed</option>
-            <option value="verticalSpeed">vertical speed</option>
-            <option value="horizontalSpeed">horizontal speed</option>
-            <option value="distance">distance</option>
-            <option value="D2H">Vertical distance to Home</option>
-            <option value="16-usonic_h">height (Ultrasonic sensor)</option>
-          </optgroup>
-          <optgroup label="gps">
-            <option value="2096-altitude">altitude</option>
-            <option value="2096-numGPS">#satellites</option>
-          </optgroup>
-          <optgroup label="battery">
-            <option value="1710-cap_per">battery capacity</option>
-            <option value="1710-temp">battery temperature</option>
-            <option value="1710-r_time">return time</option>
-          </optgroup>
-          <optgroup label="controller">
-            <option value="1000-ctrl_pitch">controller pitch</option>
-            <option value="1000-ctrl_roll">controller roll</option>
-            <option value="1000-ctrl_yaw">controller yaw</option>
-            <option value="1000-ctrl_thr">controller throttle</option>
-            <option value="1000-D2H_x">Vertical distance to Home (x)</option>
-            <option value="1000-D2H_y">Vertical distance to Home (y)</option>
-          </optgroup>
-          <optgroup label="OsdGeneral">
-            <option value="12-gohome_landing_reason">go home landing reason</option>
-          </optgroup>
-        </select>
+        <ng-container *ngIf="showAllData">
+          <select [(ngModel)]="dat.data" style="margin-left: 10px" (change)="dataArrUpdated()">
+            <option value="">No data.</option>
+            <optgroup label="general">
+              <option value="speed">speed</option>
+              <option value="verticalSpeed">vertical speed</option>
+              <option value="horizontalSpeed">horizontal speed</option>
+              <option value="distance">distance</option>
+              <option value="D2H">Vertical distance to Home</option>
+            </optgroup>
+            <optgroup label="{{type.database.name}}" *ngFor="let type of availableDBs">
+              <option value="{{type.key}}-{{attr}}" *ngFor="let attr of type.attrs">{{attr}}</option>
+            </optgroup>
+          </select>
+        </ng-container>
+        <ng-container *ngIf="!showAllData">
+          <select [(ngModel)]="dat.data" style="margin-left: 10px" (change)="dataArrUpdated()">
+            <option value="">No data.</option>
+            <optgroup label="general">
+              <option value="speed">speed</option>
+              <option value="verticalSpeed">vertical speed</option>
+              <option value="horizontalSpeed">horizontal speed</option>
+              <option value="distance">distance</option>
+              <option value="D2H">Vertical distance to Home</option>
+              <option value="16-usonic_h">height (Ultrasonic sensor)</option>
+            </optgroup>
+            <optgroup label="gps">
+              <option value="2096-altitude">altitude</option>
+              <option value="2096-numGPS">#satellites</option>
+            </optgroup>
+            <optgroup label="battery">
+              <option value="1710-cap_per">battery capacity</option>
+              <option value="1710-temp">battery temperature</option>
+              <option value="1710-r_time">return time</option>
+            </optgroup>
+            <optgroup label="controller">
+              <option value="1000-ctrl_pitch">controller pitch</option>
+              <option value="1000-ctrl_roll">controller roll</option>
+              <option value="1000-ctrl_yaw">controller yaw</option>
+              <option value="1000-ctrl_thr">controller throttle</option>
+              <option value="1000-D2H_x">Vertical distance to Home (x)</option>
+              <option value="1000-D2H_y">Vertical distance to Home (y)</option>
+            </optgroup>
+            <optgroup label="OsdGeneral">
+              <option value="12-gohome_landing_reason">go home landing reason</option>
+            </optgroup>
+            <option value="{{dat.data}}">{{dat.data.split("-")[1]}}</option>
+          </select>
+        </ng-container>
         <input type="color" style="margin-left: 10px" [(ngModel)]="dat.color" (change)="dataArrUpdated()">
         <input type="checkbox" id="dataDisplayed{{i}}" [(ngModel)]="dat.displayed" (change)="dataArrUpdated()" style="margin-left: 10px"><label for="dataDisplayed{{i}}">active</label>
         <span class="material-icons grey" title="delete" style="cursor: pointer; margin-left: 10px" (click)="removeEntry(i)">delete_forever</span>

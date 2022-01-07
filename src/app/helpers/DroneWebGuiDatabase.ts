@@ -1,4 +1,5 @@
 import Dexie, {Table} from 'dexie';
+import {Class} from "leaflet";
 
 export class DroneWebGuiDatabase extends Dexie {
   // Declare implicit table properties.
@@ -12,6 +13,8 @@ export class DroneWebGuiDatabase extends Dexie {
   rcDebug: Dexie.Table<RcDebugInfoDbMessage, number>;
   imuAtti: Dexie.Table<ImuAttiDbMessage, number>;
   recMag: Dexie.Table<RecMagDbMessage, number>;
+  escData: Dexie.Table<EscDataDbMessage, number>;
+  motorCtrl: Dexie.Table<MotorCtrlDbMessage, number>;
 
   constructor () {
     super("DroneWebGuiDatabase");
@@ -25,6 +28,8 @@ export class DroneWebGuiDatabase extends Dexie {
       rcDebug: '++id, fileId, [fileId+messageNum]',
       imuAttiDbMessage: '++id, fileId, [fileId+messageNum]',
       recMag: '++id, fileId, [fileId+messageNum]',
+      escData: '++id, fileId, [fileId+messageNum]',
+      motorCtrl: '++id, fileId, [fileId+messageNum]',
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -46,6 +51,10 @@ export class DroneWebGuiDatabase extends Dexie {
     this.imuAtti.mapToClass(ImuAttiDbMessage);
     this.recMag = this.table("recMag");
     this.recMag.mapToClass(RecMagDbMessage);
+    this.escData = this.table("escData");
+    this.escData.mapToClass(EscDataDbMessage);
+    this.motorCtrl = this.table("motorCtrl");
+    this.motorCtrl.mapToClass(MotorCtrlDbMessage);
   }
 
   public getDatabaseForPackageId(key: string): Table | null {
@@ -56,6 +65,8 @@ export class DroneWebGuiDatabase extends Dexie {
         return this.ultrasonic;
       case "1000":
         return this.controller;
+      case "1307":
+        return this.motorCtrl;
       case "1700":
         return this.rcDebug;
       case "1710":
@@ -66,27 +77,48 @@ export class DroneWebGuiDatabase extends Dexie {
         return this.gps;
       case "2256":
         return this.recMag;
+      case "10090":
+        return this.escData;
     }
     return null;
   }
 
   public getAvailableDatabases(): DbInfo[] {
     return [
-      {key: "12", database: this.osdGeneral},
-      {key: "16", database: this.ultrasonic},
-      {key: "1000", database: this.controller},
-      {key: "1700", database: this.rcDebug},
-      {key: "1710", database: this.battery},
-      {key: "2048", database: this.imuAtti},
-      {key: "2096", database: this.gps},
-      {key: "2256", database: this.recMag}
+      {key: "12", database: this.osdGeneral, attrs: ['longtitude', 'latitude', 'relative_height', 'vgx', 'vgy', 'vgz',
+          'pitch', 'roll', 'yaw', 'mode1', 'latest_cmd', 'controller_state', 'gps_nums', 'gohome_landing_reason',
+          'start_fail_reason', 'controller_state_ext', 'ctrl_tick', 'ultrasonic_height', 'motor_startup_time',
+          'motor_startup_times', 'bat_alarm1', 'bat_alarm2', 'version_match', 'product_type',
+          'imu_init_fail_reason', 'stop_motor_reason', 'motor_start_error_code', 'sdk_ctrl_dev', 'yaw_rate']},
+      {key: "16", database: this.ultrasonic, attrs: ['usonic_h', 'usonic_flag', 'usonic_cnt']},
+      {key: "1000", database: this.controller, attrs: ['ctrl_tick', 'ctrl_pitch', 'ctrl_roll', 'ctrl_yaw', 'ctrl_thr',
+          'ctrl_mode', 'mode_switch', 'motor_state', 'sig_level', 'ctrl_level', 'sim_model', 'max_height', 'max_radius',
+          'D2H_x', 'D2H_y', 'act_req_id', 'act_act_id', 'cmd_mod', 'mod_req_id', 'fw_flag', 'mot_sta', 'OH_take',
+          'rc_cnt', 'sup_rc']},
+      {key: "1700", database: this.rcDebug, attrs: ['cur_cmd', 'fail_safe', 'vedio_lost', 'data_lost', 'app_lost',
+          'frame_lost', 'rec_cnt', 'sky_con', 'gnd_con', 'connected', 'm_changed', 'arm_status', 'wifi_en', 'in_wifi']},
+      {key: "1710", database: this.battery, attrs: ['ad_v', 'r_time', 'ave_I', 'vol_t', 'pack_ve', 'I', 'r_cap',
+          'cap_per', 'temp', 'right', 'l_cell', 'dyna_cnt', 'f_cap', 'out_ctl', 'out_ctl_f']},
+      {key: "2048", database: this.imuAtti, attrs: ['longRad', 'latRad', 'longitudeDegrees', 'latitudeDegrees',
+          'baroPress', 'accelX', 'accelY', 'accelZ', 'gyroX', 'gyroY', 'gyroZ', 'baroAlti', 'quatW', 'quatX', 'quatY',
+          'quatZ', 'ag_X', 'ag_Y', 'ag_Z', 'velN', 'velE', 'velD', 'gb_X', 'gb_Y', 'gb_Z', 'magX', 'magY', 'magZ',
+          'imuTemp', 'ty', 'tz', 'sensor_stat', 'filter_stat', 'numSats', 'atti_cnt']},
+      {key: "2096", database: this.gps, attrs: ['latitude', 'longitude', 'altitude', 'velN', 'velE', 'velD', 'date',
+          'time', 'hdop', 'pdop', 'hacc', 'sacc', 'numGPS', 'numGLN', 'numSV']},
+      {key: "2256", database: this.recMag, attrs: ['magX', 'magY', 'magZ']},
+      {key: "10090", database: this.escData, attrs: ['rfStatus', 'rfCurrent', 'rfSpeed', 'rfVolts', 'rfTemp',
+          'rfPPM_recv', 'rfV_out', 'rfPPM_send', 'lfStatus', 'lfCurrent', 'lfSpeed', 'lfVolts', 'lfTemp', 'lfPPM_recv',
+          'lfV_out', 'lfPPM_send', 'lbStatus', 'lbCurrent', 'lbSpeed', 'lbVolts', 'lbTemp', 'lbPPM_recv', 'lbV_out',
+          'lbPPM_send', 'rbStatus', 'rbCurrent', 'rbSpeed', 'rbVolts', 'rbTemp', 'rbPPM_recv', 'rbV_out', 'rbPPM_send']},
+      {key: "1307", database: this.motorCtrl, attrs: ['pwm1','pwm2','pwm3','pwm4','pwm5','pwm6','pwm7','pwm8']}
     ];
   }
 }
 
-interface DbInfo {
+export interface DbInfo {
   key: string;
   database: Table;
+  attrs: string[];
 }
 
 interface IDbFile {
@@ -147,6 +179,7 @@ export class DbFile {
     this.gpsOffset = gpsOffset;
     this.track = track;
     this.fileDuration = fileDuration;
+    this.timeOffset = timeOffset;
     this.timeOffset = timeOffset;
     this.timeUntilGPS = timeUntilGPS;
     this.timeUntilTakeOff = timeUntilTakeOff;
@@ -510,5 +543,106 @@ export class RecMagDbMessage extends DbMessage {
     this.magX = magX;
     this.magY = magY;
     this.magZ = magZ;
+  }
+}
+
+export class EscDataDbMessage extends DbMessage {
+  rfStatus: number;
+  rfCurrent: number;
+  rfSpeed: number;
+  rfVolts: number;
+  rfTemp: number;
+  rfPPM_recv: number;
+  rfV_out: number;
+  rfPPM_send: number;
+  lfStatus: number;
+  lfCurrent: number;
+  lfSpeed: number;
+  lfVolts: number;
+  lfTemp: number;
+  lfPPM_recv: number;
+  lfV_out: number;
+  lfPPM_send: number;
+  lbStatus: number;
+  lbCurrent: number;
+  lbSpeed: number;
+  lbVolts: number;
+  lbTemp: number;
+  lbPPM_recv: number;
+  lbV_out: number;
+  lbPPM_send: number;
+  rbStatus: number;
+  rbCurrent: number;
+  rbSpeed: number;
+  rbVolts: number;
+  rbTemp: number;
+  rbPPM_recv: number;
+  rbV_out: number;
+  rbPPM_send: number;
+
+  constructor(id: number, fileId: number, messageNum: number, offset: number, rfStatus: number, rfCurrent: number,
+              rfSpeed: number, rfVolts: number, rfTemp: number, rfPPM_recv: number, rfV_out: number, rfPPM_send: number,
+              lfStatus: number, lfCurrent: number, lfSpeed: number, lfVolts: number, lfTemp: number, lfPPM_recv: number,
+              lfV_out: number, lfPPM_send: number, lbStatus: number, lbCurrent: number, lbSpeed: number, lbVolts: number,
+              lbTemp: number, lbPPM_recv: number, lbV_out: number, lbPPM_send: number, rbStatus: number,
+              rbCurrent: number, rbSpeed: number, rbVolts: number, rbTemp: number, rbPPM_recv: number, rbV_out: number,
+              rbPPM_send: number) {
+    super(id, fileId, messageNum, offset);
+    this.rfStatus = rfStatus;
+    this.rfCurrent = rfCurrent;
+    this.rfSpeed = rfSpeed;
+    this.rfVolts = rfVolts;
+    this.rfTemp = rfTemp;
+    this.rfPPM_recv = rfPPM_recv;
+    this.rfV_out = rfV_out;
+    this.rfPPM_send = rfPPM_send;
+    this.lfStatus = lfStatus;
+    this.lfCurrent = lfCurrent;
+    this.lfSpeed = lfSpeed;
+    this.lfVolts = lfVolts;
+    this.lfTemp = lfTemp;
+    this.lfPPM_recv = lfPPM_recv;
+    this.lfV_out = lfV_out;
+    this.lfPPM_send = lfPPM_send;
+    this.lbStatus = lbStatus;
+    this.lbCurrent = lbCurrent;
+    this.lbSpeed = lbSpeed;
+    this.lbVolts = lbVolts;
+    this.lbTemp = lbTemp;
+    this.lbPPM_recv = lbPPM_recv;
+    this.lbV_out = lbV_out;
+    this.lbPPM_send = lbPPM_send;
+    this.rbStatus = rbStatus;
+    this.rbCurrent = rbCurrent;
+    this.rbSpeed = rbSpeed;
+    this.rbVolts = rbVolts;
+    this.rbTemp = rbTemp;
+    this.rbPPM_recv = rbPPM_recv;
+    this.rbV_out = rbV_out;
+    this.rbPPM_send = rbPPM_send;
+  }
+}
+
+export class MotorCtrlDbMessage extends DbMessage {
+  pwm1: number;
+  pwm2: number;
+  pwm3: number;
+  pwm4: number;
+  pwm5: number;
+  pwm6: number;
+  pwm7: number;
+  pwm8: number;
+
+  constructor(id: number, fileId: number, messageNum: number, offset: number, pwm1: number, pwm2: number, pwm3: number,
+              pwm4: number, pwm5: number, pwm6: number, pwm7: number, pwm8: number) {
+    super(id, fileId, messageNum, offset);
+    this.pwm1 = pwm1;
+    this.pwm2 = pwm2;
+    this.pwm3 = pwm3;
+    this.pwm4 = pwm4;
+    this.pwm5 = pwm5;
+    this.pwm6 = pwm6;
+    this.pwm7 = pwm7;
+    this.pwm8 = pwm8;
   }
 }

@@ -75,6 +75,12 @@ export class RawDataComponent implements OnInit, DroneMapWidget {
       case "recMag":
         mes = this.globals.recMagMessage;
         break;
+      case "escData":
+        mes = this.globals.escDataMessage;
+        break;
+      case "MotorCtrl":
+        mes = this.globals.motorCtrlMessage;
+        break;
       default:
       case "latest":
         mes = this.globals.latestMessage;
@@ -103,6 +109,9 @@ export class RawDataComponent implements OnInit, DroneMapWidget {
         break;
       case 2256:
         this.messageType = "Magnetometer";
+        break;
+      case 10090:
+        this.messageType = "EscData";
         break;
       default:
         this.messageType = "";
