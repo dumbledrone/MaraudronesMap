@@ -90,6 +90,33 @@ export class ControllerStatusComponent implements OnInit, DroneMapWidget {
     ctx.moveTo(this.middle_right, this.middle_height);
     ctx.lineTo(this._ctrl_yaw, this._ctrl_thr);
     ctx.stroke();
+
+    ctx.beginPath();
+    ctx.font = "15px Arial";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.fillText("roll", this.middle_left, this.middle_height + this.radius + 18);
+
+    ctx.beginPath();
+    ctx.font = "15px Arial";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.fillText("yaw", this.middle_right, this.middle_height + this.radius + 18);
+
+    //ctx.translate(this.canvas_width, this.canvas_height);
+    ctx.rotate(Math.PI / 2);
+
+    ctx.beginPath();
+    ctx.font = "15px Arial";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.fillText("pitch", this.middle_left, -8);
+
+    ctx.beginPath();
+    ctx.font = "15px Arial";
+    ctx.fillStyle = "black";
+    ctx.textAlign = "center";
+    ctx.fillText("throttle", this.middle_left, 19 - this.canvas_width);
   }
 
   update(): void {
