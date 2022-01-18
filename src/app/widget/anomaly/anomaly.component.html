@@ -1,12 +1,14 @@
-<p><b>Anomalies:</b></p>
+<ng-container *ngIf="checkingDone">
+<p style="margin-top: 10px"><b>Anomalies:</b></p>
 <div id="anomalyDiv">
   <ng-container *ngFor="let i of errors">
     <ng-container *ngIf="i.severity <= this.globals.anomalyLevel"> <!-- severe: 0, medium: 1, minor: 2-->
       <span class="text" [class.low]="i.severity === severityVar.minor" [class.medium]="i.severity === severityVar.medium"
-            [class.high]="i.severity === severityVar.severe" [class.headline]="i.headline === true">{{i.text}}</span>
+            [class.high]="i.severity === severityVar.severe" [class.headline]="i.headline">{{i.text}}</span>
       <ng-container *ngIf="i.mesNum != -1">
         <span class="mesNum" (click)="sendMesNumEvent(i.mesNum)" onmouseover="style='text-decoration:underline'" onmouseout="style='text-decoration:none'">{{i.mesNum}}</span>
       </ng-container>
     </ng-container>
   </ng-container>
 </div>
+</ng-container>

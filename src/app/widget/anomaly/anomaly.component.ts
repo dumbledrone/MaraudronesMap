@@ -4,7 +4,7 @@ import {
   BatteryDbMessage,
   ControllerDbMessage,
   DroneWebGuiDatabase,
-  GpsDbMessage, ImuAttiDbMessage,
+  GpsDbMessage, ImuAttiDbMessage, MotorCtrlDbMessage,
   OsdGeneralDataDbMessage, RecMagDbMessage
 } from "../../helpers/DroneWebGuiDatabase";
 import {tick} from "@angular/core/testing";
@@ -19,16 +19,18 @@ import {getOrientationFromImuAttiMessage, getOrientationFromRecMagMessage} from 
 export class AnomalyComponent implements OnInit, DroneMapWidget {
 
   public severityVar = Severity;
+  public checkingDone = true;
 
   constructor(public globals: Globals, private dexieDbService: DroneWebGuiDatabase) {
     this.globals.subscribe(this);
-    this._errors = [];
+    this._errors = [{text:"no file selected", mesNum:-1, severity:Severity.severe, headline: true}];
     this._osdGenMes = [];
     this._gpsMes = [];
     this._ctrlMes = [];
     this._imuAttiMes = [];
     this._batteryMes = [];
     this._recMagMes = [];
+    this._motorCtrlMes = [];
   }
 
   ngOnInit(): void {
@@ -41,6 +43,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
   private _batteryMes: BatteryDbMessage[];
   private _recMagMes: RecMagDbMessage[];
   private _orientations:orient[] = [];
+  private _motorCtrlMes:MotorCtrlDbMessage[];
 
   get errors() {
     return this._errors;
@@ -48,14 +51,15 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
 
   checkFlight() {
     this.prepareOrientations();
-    this.checkTicks();
+
+    //
+    //this.checkTicks();
     //this.checkTimeStamps();
     //this.checkBattery(Severity.severe);
-//    this.checkRoll();  //todo no idea how
-//    this.checkPitch();  //todo no idea how
 //    this.checkThrottle(); //todo no idea how
     //this.checkOrientationToCtrl(Severity.minor);
     //this.checkOrientationChange();
+    this.checkRotorSpeed();
 
 
     let sevSev = false, sevMed = false;
@@ -73,6 +77,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
       this._errors.push({text:"No severe anomalies detected.", mesNum:-1, severity: Severity.severe, headline: true})
     else if (this.globals.anomalyLevel == Severity.medium && !sevSev && !sevMed)
       this._errors.push({text:"No medium or severe anomalies detected.", mesNum:-1, severity: Severity.severe, headline: true})
+    this.checkingDone = true;
   }
 
   prepareOrientations() {
@@ -110,17 +115,11 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
   }
   checkOrientationPair(x1:number, x2: number, degrees_until_jump: number){
     if (x1 > degrees_until_jump && x1 <= (360-degrees_until_jump)){
-      let a= (x2 >= x1-degrees_until_jump && x2 <= x1 + degrees_until_jump);
-      if(!a) console.log("1 - x1: "+x1+", x2: "+x2+", ret: "+a+", degUntilJ: "+degrees_until_jump);
-      return a;
+      return (x2 >= x1-degrees_until_jump && x2 <= x1 + degrees_until_jump);
     } else if (x1 > 0 && x1 <= degrees_until_jump) {
-      let a = (x2 >= x1 && x2 <= x1 + degrees_until_jump) || (x2 >= 360 - (degrees_until_jump - x1) && x2 <= 360) || (x2 > 0 && x2 <= x1)
-      if(!a) console.log("2 - x1: "+x1+", x2: "+x2+", ret: "+a+", degUntilJ: "+degrees_until_jump);
-      return a;
+      return (x2 >= x1 && x2 <= x1 + degrees_until_jump) || (x2 >= 360 - (degrees_until_jump - x1) && x2 <= 360) || (x2 > 0 && x2 <= x1)
     } else if (x1 > (360-degrees_until_jump) && x1 <= 360) {
-      let a = (x2 >= x1 - degrees_until_jump && x2 <= x1) || (x2 > 0 && x2 <= (x1 + degrees_until_jump - 360)) || (x2 > x1 && x2 <= 360);
-      if(!a) console.log("3 - x1: "+x1+", x2: "+x2+", ret: "+a+", degUntilJ: "+degrees_until_jump);
-      return a;
+      return (x2 >= x1 - degrees_until_jump && x2 <= x1) || (x2 > 0 && x2 <= (x1 + degrees_until_jump - 360)) || (x2 > x1 && x2 <= 360);
     } else
       console.log("error - anomaly.component.ts - checkOrientationPair: this should not be reachable.")
     return false
@@ -131,7 +130,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
   //yaw input: [-10000,10000]
   checkOrientationToCtrl(severity: Severity) {  //new object with interface or type
     let orientationError = false;
-    this._errors.push({text:"orientation in respect to controller:", mesNum:-1, severity:severity, headline: true});
+    this._errors.push({text:"orientation in respect to controller input:", mesNum:-1, severity:severity, headline: true});
     this._ctrlMes.forEach(mes => {
       //look for last msg before and the five ahead
       let before: orient | undefined;
@@ -155,7 +154,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
       }
       if(!correct) {
         orientationError = true;
-        this._errors.push({text:"Controller: " + mes.ctrl_yaw + ", drone does not react accordingly.", mesNum:mes.messageNum, severity:severity, headline: false})
+        this._errors.push({text:"Controller (yaw): " + mes.ctrl_yaw + ", drone does not turn accordingly.", mesNum:mes.messageNum, severity:severity, headline: false})
       }
     })
     if(!orientationError)
@@ -217,25 +216,6 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
       this._errors.push({text:"Battery: the battery capacity is increasing between these percentages:", mesNum:-1, severity:severity, headline: true})
       this._errors = this._errors.concat(batGoesUp);
     }
-  }
-  helperSortAndUniquify(it:number[], log:boolean) {
-    it.sort(function (a,b){
-      if(a<b) return -1;
-      if(a>b) return 1;
-      return 0;
-    });
-    let ret = [it[0]];
-    for (let i = 1; i < it.length; i++) { //Start loop at 1: arr[0] can never be a duplicate
-      if (it[i]<-269 || it[i] > 89) {
-        ret.push(it[i]);
-      }
-    }
-    if(log) {
-      ret.forEach(retty => {
-        console.log(retty);
-      })
-    }
-    return ret;
   }
 
   checkTicks() {//severity: minor <=5, medium <=10, severe all above
@@ -321,27 +301,38 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
       this._errors[indHeadline].severity = Math.min(severity4,severity6);
     }
   }
-  checkRoll(severity: Severity) {
-    this._ctrlMes.forEach(mes =>{ //TODO what infos do we want?
-      let osdMes:OsdGeneralDataDbMessage | undefined;
-      for (let i = 0; i < this._osdGenMes.length; i++) {
-        if(this._osdGenMes[i].messageNum > mes.messageNum) {
-          osdMes = this._osdGenMes[i];
-          break;
-        }
+
+
+  checkRotorSpeed() {
+    let tmpErrors: error[] = [];
+    this._errors.push({text: "One rotor stopped working while the others continued", mesNum: -1, severity: Severity.severe, headline: true});
+    let errorExists: boolean = false;
+    this._motorCtrlMes[300].pwm4 = this._motorCtrlMes[300].pwm1 = 0;
+    this._motorCtrlMes.forEach(mes => {
+      let controllerMes = this._ctrlMes.slice().sort((a:any, b: any) => Math.abs(b.messageNum-mes.messageNum) - Math.abs(a.messageNum-mes.messageNum)).pop();
+
+      if(mes.pwm1 === 0 && mes.pwm2 !== 0 && mes.pwm3 !== 0 && mes.pwm4 !== 0) {
+        this._errors.push({text:"rotor 1 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
+        errorExists = true;
+      } else if(mes.pwm1 !== 0 && mes.pwm2 === 0 && mes.pwm3 !== 0 && mes.pwm4 !== 0) {
+        this._errors.push({text:"rotor 2 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
+        errorExists = true;
+      } else if(mes.pwm1 !== 0 && mes.pwm2 !== 0 && mes.pwm3 === 0 && mes.pwm4 !== 0) {
+        this._errors.push({text:"rotor 3 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
+        errorExists = true;
+      } else if(mes.pwm1 !== 0 && mes.pwm2 !== 0 && mes.pwm3 !== 0 && mes.pwm4 === 0) {
+        this._errors.push({text:"rotor 4 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
+        errorExists = true;
+      } else if ((mes.pwm1 === 0 || mes.pwm2 === 0 || mes.pwm3 === 0 || mes.pwm4 === 0) && controllerMes?.mot_sta !== 0) {
+        tmpErrors.push({text: "at least one rotor stopped working while motor is on", mesNum: mes.messageNum, severity: Severity.minor, headline: false})
       }
-      if(osdMes === undefined)
-        return;//TODO
-//      console.log("ctrl: " + mes.ctrl_roll + ", " +osdMes.roll + " :osdMes")
     })
-  }
-
-  checkPitch(severity: Severity) {
-
-  }
-
-  checkYaw(severity: Severity) {
-
+    if(!errorExists)
+      this._errors.pop();
+    if(tmpErrors.length !== 0) {
+      this._errors.push({text: "Rotors touched zero revolutions while motor running", mesNum: -1, severity: Severity.minor, headline: true})
+      this._errors = this._errors.concat(tmpErrors);
+    }
   }
 
   checkThrottle(severity: Severity) {
@@ -365,7 +356,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
 
     function onComplete() {
       ct++;
-      if (ct === 6) {
+      if (ct === 7) {
         inst.checkFlight();
       }
     }
@@ -401,6 +392,11 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
       this._recMagMes = res;
       onComplete();
     });
+    this.dexieDbService.motorCtrl.where('fileId')
+      .equals(this.globals.file.id).toArray().then(res => {
+      this._motorCtrlMes = res;
+      onComplete();
+    });
   }
 
   fileChanged(): void {
@@ -409,6 +405,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
       return;
     }
     this._errors = [];
+    this.checkingDone = false;
     this.checkFlightValidity();
   }
 
@@ -421,6 +418,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
     let evt = new CustomEvent("setTimeEvent", {detail: {messageNum: mesNum}});
     document.dispatchEvent(evt);
   }
+
 }
 interface orient{
   degree: number;
