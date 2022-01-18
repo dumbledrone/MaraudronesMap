@@ -1,0 +1,31 @@
+#anomalyDiv {
+  display: grid;
+  grid-template-columns: 1fr fit-content(1ch);
+  height: fit-content;
+}
+.text {
+  grid-column: 1;
+  margin-right: 15px;
+  cursor: default;
+}
+.mesNum {
+  grid-column: 2;
+  margin-right: 15px;
+  cursor: pointer;
+}
+.mesNum:hover {
+  text-decoration: underline;
+  color: blue;
+}
+.low {
+  color: green;
+}
+.medium {
+  color: #c57100;/*#250566;*/
+}
+.high {
+  color: #bb0404;/*#66121c;*/
+}
+.headline {
+  color: black;
+}

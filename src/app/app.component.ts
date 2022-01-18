@@ -43,6 +43,7 @@ export class AppComponent implements OnInit {
       test: this._localStorageValues,
       mapType: this._mapType,
       lineType: this.globals.lineType,
+      anomalyLevel: this.globals.anomalyLevel,
     }
     const dialogRef = this.dialog.open(AppearenceDialogueComponent, dialogConfig);
 
@@ -55,6 +56,7 @@ export class AppComponent implements OnInit {
       }
       localStorage.setItem("mapView", String(data.selectedMap));
       localStorage.setItem("lineColor", String(data.selectedColor));
+      localStorage.setItem("anomalyLevel", String(data.selectedAnomalyLevel));
       this.updateInfoView();
     });
   }
@@ -66,8 +68,6 @@ export class AppComponent implements OnInit {
     //@ts-ignore
     document.getElementById("infos1")?.style.display = this._localStorageValues[1] ? "block" : "none";
     //@ts-ignore
-    document.getElementById("infos2")?.style.display = this._localStorageValues[2] ? "block" : "none";
-    //@ts-ignore
     document.getElementById("infos3")?.style.display = this._localStorageValues[3] ? "block" : "none";
     //@ts-ignore
     document.getElementById("infos4")?.style.display = this._localStorageValues[4] ? "block" : "none";
@@ -77,6 +77,10 @@ export class AppComponent implements OnInit {
     this.mapType = tmp===null? 1 : parseInt(tmp);
     tmp = localStorage.getItem("lineColor");
     this.globals.lineType = tmp===null? 0 : parseInt(tmp);
+    tmp = localStorage.getItem("anomalyLevel");
+    this.globals.anomalyLevel = tmp===null? 0 : parseInt(tmp);
+    //@ts-ignore
+    document.getElementById("infos2")?.style.display = this.globals.anomalyLevel === -1 ? "none" : "block";
   }
 
   getLocalStorageValues() {
@@ -97,6 +101,12 @@ export class AppComponent implements OnInit {
       this.globals.lineType = 0;
       localStorage.setItem("lineColor", String(0));
     }
+    tmp = localStorage.getItem("anomalyLevel");
+    this.globals.anomalyLevel = tmp===null? 0 : parseInt(tmp);
+    if(isNaN(this.globals.anomalyLevel)) {
+      this.globals.anomalyLevel = 0;
+      localStorage.setItem("anomalyLevel", String(0));
+    }
   }
 
   get mapType() {
@@ -106,4 +116,5 @@ export class AppComponent implements OnInit {
   set mapType(val: number) {
     this._mapType = val;
   }
+
 }

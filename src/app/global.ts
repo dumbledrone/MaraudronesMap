@@ -34,10 +34,12 @@ export class Globals {
   private _escDataMessage: EscDataDbMessage | undefined;
   private _motorCtrlMessage: MotorCtrlDbMessage | undefined;
   private _lineType: LineType = LineType.none;
+  private _anomalyLevel!: number;
   private _latestMessage: DbMessage | undefined;
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
     this._dbFiles = [];
+    this._anomalyLevel = 0;
     this.loadDbFiles();
   }
 
@@ -479,6 +481,12 @@ export class Globals {
 
   get lineType() {
     return this._lineType;
+  }
+  get anomalyLevel() {
+    return this._anomalyLevel;
+  }
+  set anomalyLevel(val: number) {
+    this._anomalyLevel = val;
   }
 }
 

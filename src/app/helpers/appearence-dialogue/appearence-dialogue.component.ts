@@ -15,12 +15,15 @@ export class AppearenceDialogueComponent implements OnInit {
   checkboxValues: boolean[];
   mapViews: MapView[];
   lineColors: LineColor[];
+  anomalyLevels: AnomalyLevel[];
   _selectedMap!:string;
   _selectedColor!:string;
+  _selectedAnomalyLevel!:string;
 
   constructor(private fb: FormBuilder, private dialogRef: MatDialogRef<AppearenceDialogueComponent>, @Inject(MAT_DIALOG_DATA) data: any) {
     this._selectedMap = String(data.mapType);
     this._selectedColor = String(data.lineType);
+    this._selectedAnomalyLevel = String(data.anomalyLevel);
     this.checkboxValues = [];
     for (let i = 0; i < data.test.length; i++) {
       this.checkboxValues[i] = data.test[i];
@@ -48,6 +51,12 @@ export class AppearenceDialogueComponent implements OnInit {
       {value: '2', viewValue: 'altitude'},
       {value: '3', viewValue: 'horizontal speed'},
     ];
+    this.anomalyLevels = [
+      {value: '-1', viewValue: 'none'},
+      {value: '0', viewValue: 'severe anomalies'},
+      {value: '1', viewValue: 'medium anomalies'},
+      {value: '2', viewValue: 'minor anomalies'},
+    ];
   }
 
   ngOnInit(): void {}
@@ -55,6 +64,7 @@ export class AppearenceDialogueComponent implements OnInit {
   save(): void {
     this.form.value.selectedMap = +this.selectedMap;
     this.form.value.selectedColor = +this.selectedColor;
+    this.form.value.selectedAnomalyLevel = +this.selectedAnomalyLevel;
     this.dialogRef.close(this.form.value)
   }
 
@@ -67,6 +77,9 @@ export class AppearenceDialogueComponent implements OnInit {
   get selectedColor() {
     return this._selectedColor;
   }
+  get selectedAnomalyLevel() {
+    return this._selectedAnomalyLevel;
+  }
 }
 
 
@@ -76,6 +89,10 @@ interface MapView {
   viewValue: string;
 }
 interface LineColor {
+  value: string;
+  viewValue: string;
+}
+interface AnomalyLevel {
   value: string;
   viewValue: string;
 }
