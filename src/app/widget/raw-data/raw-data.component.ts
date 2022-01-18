@@ -69,6 +69,9 @@ export class RawDataComponent implements OnInit, DroneMapWidget {
       case "osd":
         mes = this.globals.osdGeneralMessage;
         break;
+      case "osdHome":
+        mes = this.globals.osdHomeMessage;
+        break;
       case "imuAtti":
         mes = this.globals.imuAttiMessage;
         break;
@@ -90,6 +93,9 @@ export class RawDataComponent implements OnInit, DroneMapWidget {
     switch (mes.pktId) {
       case 12:
         this.messageType = "OsdGeneral";
+        break;
+      case 13:
+        this.messageType = "OsdHome";
         break;
       case 16:
         this.messageType = "Ultrasonic";

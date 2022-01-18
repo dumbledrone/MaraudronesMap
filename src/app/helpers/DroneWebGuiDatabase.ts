@@ -15,6 +15,7 @@ export class DroneWebGuiDatabase extends Dexie {
   recMag: Dexie.Table<RecMagDbMessage, number>;
   escData: Dexie.Table<EscDataDbMessage, number>;
   motorCtrl: Dexie.Table<MotorCtrlDbMessage, number>;
+  osdHome: Dexie.Table<OsdHomeDbMessage, number>;
 
   constructor () {
     super("DroneWebGuiDatabase");
@@ -30,6 +31,7 @@ export class DroneWebGuiDatabase extends Dexie {
       recMag: '++id, fileId, [fileId+messageNum]',
       escData: '++id, fileId, [fileId+messageNum]',
       motorCtrl: '++id, fileId, [fileId+messageNum]',
+      osdHome: '++id, fileId, [fileId+messageNum]',
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -55,12 +57,16 @@ export class DroneWebGuiDatabase extends Dexie {
     this.escData.mapToClass(EscDataDbMessage);
     this.motorCtrl = this.table("motorCtrl");
     this.motorCtrl.mapToClass(MotorCtrlDbMessage);
+    this.osdHome = this.table("osdHome");
+    this.osdHome.mapToClass(OsdHomeDbMessage);
   }
 
   public getDatabaseForPackageId(key: string): Table | null {
     switch(key) {
       case "12":
         return this.osdGeneral;
+      case "13":
+        return this.osdHome;
       case "16":
         return this.ultrasonic;
       case "1000":
@@ -90,6 +96,8 @@ export class DroneWebGuiDatabase extends Dexie {
           'start_fail_reason', 'controller_state_ext', 'ctrl_tick', 'ultrasonic_height', 'motor_startup_time',
           'motor_startup_times', 'bat_alarm1', 'bat_alarm2', 'version_match', 'product_type',
           'imu_init_fail_reason', 'stop_motor_reason', 'motor_start_error_code', 'sdk_ctrl_dev', 'yaw_rate']},
+      {key: "13", database: this.osdHome, attrs: ['osd_lon','osd_lat','osd_alt','osd_home_state','fixed_altitude',
+          'course_lock_torsion']},
       {key: "16", database: this.ultrasonic, attrs: ['usonic_h', 'usonic_flag', 'usonic_cnt']},
       {key: "1000", database: this.controller, attrs: ['ctrl_tick', 'ctrl_pitch', 'ctrl_roll', 'ctrl_yaw', 'ctrl_thr',
           'ctrl_mode', 'mode_switch', 'motor_state', 'sig_level', 'ctrl_level', 'sim_model', 'max_height', 'max_radius',
@@ -644,5 +652,25 @@ export class MotorCtrlDbMessage extends DbMessage {
     this.pwm6 = pwm6;
     this.pwm7 = pwm7;
     this.pwm8 = pwm8;
+  }
+}
+
+export class OsdHomeDbMessage extends DbMessage {
+  osd_lon: number;
+  osd_lat: number;
+  osd_alt: number;
+  osd_home_state: number;
+  fixed_altitude: number;
+  course_lock_torsion: number;
+
+  constructor(id: number, fileId: number, messageNum: number, offset: number, osd_lon: number, osd_lat: number,
+              osd_alt: number, osd_home_state: number, fixed_altitude: number, course_lock_torsion: number) {
+    super(id, fileId, messageNum, offset);
+    this.osd_lon = osd_lon;
+    this.osd_lat = osd_lat;
+    this.osd_alt = osd_alt;
+    this.osd_home_state = osd_home_state;
+    this.fixed_altitude = fixed_altitude;
+    this.course_lock_torsion = course_lock_torsion;
   }
 }

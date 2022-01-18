@@ -2,8 +2,17 @@ import {Injectable} from "@angular/core";
 import {
   BatteryDbMessage,
   ControllerDbMessage,
-  DbFile, DbMessage, DroneWebGuiDatabase, EscDataDbMessage,
-  GpsDbMessage, ImuAttiDbMessage, MotorCtrlDbMessage, OsdGeneralDataDbMessage, RecMagDbMessage,
+  DbFile,
+  DbMessage,
+  DroneWebGuiDatabase,
+  EscDataDbMessage,
+  GpsDbMessage,
+  ImuAttiDbMessage,
+  MotorCtrlDbMessage,
+  OsdGeneralDataDbMessage,
+  OsdHomeDbMessage,
+  RcDebugInfoDbMessage,
+  RecMagDbMessage,
   UltrasonicDbMessage
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
@@ -33,6 +42,8 @@ export class Globals {
   private _recMagMessage: RecMagDbMessage | undefined;
   private _escDataMessage: EscDataDbMessage | undefined;
   private _motorCtrlMessage: MotorCtrlDbMessage | undefined;
+  private _rcDebugMessage: RcDebugInfoDbMessage | undefined;
+  private _osdHomeMessage: OsdHomeDbMessage | undefined;
   private _lineType: LineType = LineType.none;
   private _anomalyLevel!: number;
   private _latestMessage: DbMessage | undefined;
@@ -128,6 +139,18 @@ export class Globals {
 
   public get motorCtrlMessage(): MotorCtrlDbMessage | undefined {
     return this._motorCtrlMessage;
+  }
+
+  set rcDebugMessage(rcDebugMessage: RcDebugInfoDbMessage | undefined) {}
+
+  public get rcDebugMessage(): RcDebugInfoDbMessage | undefined {
+    return this._rcDebugMessage;
+  }
+
+  set osdHomeMessage(osdHomeMessage: OsdHomeDbMessage | undefined) {}
+
+  public get osdHomeMessage(): OsdHomeDbMessage | undefined {
+    return this._osdHomeMessage;
   }
 
   set file(file: DbFile | null) {}
@@ -252,6 +275,7 @@ export class Globals {
       this._recMagMessage = undefined;
       this._escDataMessage = undefined;
       this._motorCtrlMessage = undefined;
+      this._osdHomeMessage = undefined;
       this.fileChanged();
       return;
     }
@@ -278,13 +302,14 @@ export class Globals {
     let ct = 0;
     let inst = this;
     function onComplete() {
-      ct++;
-      if(ct === 7) {// Update if additional message types are added
+      ct--;
+      if(ct === 0) {// Update if additional message types are added
         inst.loadDbFiles();
         inst.updated();
       }
     }
 
+    ct++;
     this.dexieDbService.gps.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -293,6 +318,7 @@ export class Globals {
         this._latestMessage = this._gpsMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.battery.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -301,6 +327,7 @@ export class Globals {
         this._latestMessage = this._batteryMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.controller.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -309,6 +336,7 @@ export class Globals {
         this._latestMessage = this._controllerMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.ultrasonic.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -317,6 +345,7 @@ export class Globals {
         this._latestMessage = this._uSonicMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.osdGeneral.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -325,6 +354,7 @@ export class Globals {
         this._latestMessage = this._osdGeneralMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.imuAtti.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -333,6 +363,7 @@ export class Globals {
         this._latestMessage = this._imuAttiMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.recMag.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -341,6 +372,7 @@ export class Globals {
         this._latestMessage = this._recMagMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.escData.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
@@ -349,12 +381,31 @@ export class Globals {
         this._latestMessage = this._escDataMessage;
       onComplete();
     });
+    ct++;
     this.dexieDbService.motorCtrl.where('[fileId+messageNum]')
       .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._motorCtrlMessage = res.slice(-1).pop();
       if(this._motorCtrlMessage?.messageNum === messageId)
         this._latestMessage = this._motorCtrlMessage;
+      onComplete();
+    });
+    ct++;
+    this.dexieDbService.rcDebug.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._rcDebugMessage = res.slice(-1).pop();
+      if(this._rcDebugMessage?.messageNum === messageId)
+        this._latestMessage = this._rcDebugMessage;
+      onComplete();
+    });
+    ct++;
+    this.dexieDbService.osdHome.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._osdHomeMessage = res.slice(-1).pop();
+      if(this._osdHomeMessage?.messageNum === messageId)
+        this._latestMessage = this._osdHomeMessage;
       onComplete();
     });
   }
@@ -405,8 +456,10 @@ export class Globals {
     }
     let supportedKeys = this.dexieDbService.getAvailableDatabases().map(d => d.key);
     keys.forEach(key => {
-      if(!supportedKeys.includes(key))
+      if(!supportedKeys.includes(key)) {
+        console.log("unknown key: " + key);
         return;
+      }
       runningImports++;
       let db = this.dexieDbService.getDatabaseForPackageId(key);
       if(db) {

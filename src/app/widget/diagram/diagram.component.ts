@@ -2,9 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import {DroneMapWidget, Globals} from "../../global";
 import Chart, {ChartDataset} from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import {DbInfo, DroneWebGuiDatabase} from "../../helpers/DroneWebGuiDatabase";
 
 Chart.register(zoomPlugin);
+Chart.register(annotationPlugin);
 
 const DIAGRAM_DATA_KEY = "diagramData";
 const MAXIMAL_NUMBER_OF_DATASETS = 5;
@@ -51,6 +53,11 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
   }
 
   update(): void {
+    if(!this.myChart)
+      return;
+    if(!this.globals.latestMessage)
+      return;
+    this.updateCurrentMessageNum(this.globals.latestMessage.messageNum);
   }
 
   saveShowDataState() {
@@ -223,10 +230,14 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         attributePrintName = "Distance to Home (m)";
         getSpecialFromDatabase(this.dexieDbService.controller, database);
         break;
+      default:
+        getDataFromDatabase(this.dexieDbService.getDatabaseForPackageId(database), database);
+        break;
     }
   }
 
   drawChart(dataset: any) {
+    let inst = this;
     const chart: any = document.getElementById('infoChart');
     this.myChart = new Chart(chart, {
       type: 'scatter',
@@ -269,6 +280,24 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
               mode: 'xy',
               threshold: 10
             },
+          },
+          annotation: {
+            drawTime: 'afterDatasetsDraw',
+            annotations: [{
+              type: 'line',
+              id: 'vline',
+              // @ts-ignore
+              mode: 'vertical',
+              scaleID: 'x',
+              value: 0,
+              borderColor: 'darkblue',
+              borderWidth: 2,
+              /*label: {
+                enabled: true,
+                position: "center",
+                content: amount[index]
+              }*/
+            }]
           }
         },
         // @ts-ignore
@@ -282,6 +311,33 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         }
       }
     });
+    let lastX = 0;
+    let lastY = 0;
+    chart.addEventListener("mousedown", function (event: any) {
+      lastX = event.screenX;
+      lastY = event.screenY;
+    });
+    chart.addEventListener("mouseup", function (event: any) {
+      if(Math.abs(lastX - event.screenX) + Math.abs(lastY - event.screenY) > 2)
+        return;
+      let xTop = inst.myChart.chartArea.left;
+      let xBottom = inst.myChart.chartArea.right;
+      let xMin = inst.myChart.scales['x'].min;
+      let xMax = inst.myChart.scales['x'].max;
+      let newX = 0;
+
+      if (event.offsetX <= xBottom && event.offsetX >= xTop) {
+        newX = Math.abs((event.offsetX - xTop) / (xBottom - xTop));
+        newX = Math.floor(newX * (Math.abs(xMax - xMin)) + xMin);
+      }
+      let evt = new CustomEvent("setTimeEvent", {detail: {messageNum: newX}});
+      document.dispatchEvent(evt);
+    });
+  }
+
+  updateCurrentMessageNum(mesNum: number) {
+    this.myChart.config.options.plugins.annotation.annotations[0].value = mesNum; // set the Value
+    this.myChart.update(); // and update the chart.
   }
 
   showGraphInFullscreen() {
