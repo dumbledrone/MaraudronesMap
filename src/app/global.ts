@@ -17,6 +17,7 @@ import {
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
 import Table = Dexie.Table;
+import {AnomalyAnalyzer, error} from "./widget/anomaly/anomaly.component";
 
 
 @Injectable({
@@ -76,7 +77,12 @@ export class Globals {
 
   public importFile(file: File) {
     this._file = file;
-    this.processFile();
+    try {
+      this.processFile();
+    } catch (e) {
+      this.finishLoadingCallback();
+      window.alert("An error occurred during file import");
+    }
   }
 
   get flightDuration(): number {
@@ -175,6 +181,7 @@ export class Globals {
       if (inst._file === null)
         return;
       inst.loadCallback();
+      document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Importing file: " + inst._file.name}}));
       let data = JSON.parse(<string>jsonFileReader.result);
       data = data.sort((a: any, b: any) => a.offset < b.offset);
       if(data[0].offset > data[1].offset)
@@ -256,9 +263,9 @@ export class Globals {
         timeUntilTakeOff: timeUntilTakeOff,
         flightDate: date.toDateString(),
         flightStartTime: time,
-        track: []
+        track: [],
+        errors: []
       }).then((res: number) => {
-        inst.loadDbFiles();
         inst.handleDataArray(res, data);
         inst._file = null;
         console.log('created file id: ' + res);
@@ -460,7 +467,13 @@ export class Globals {
       if(--runningImports === 0) {
         console.log(new Date());
         console.log("import completed");
-        inst.finishLoadingCallback();
+        let anomalyAnalyzer = new AnomalyAnalyzer(inst, inst.dexieDbService, fileId);
+        anomalyAnalyzer.getFlightErrors((errors: error[]) => {
+          inst.dexieDbService.files.update(fileId, {errors: errors}).then(() => {
+            inst.loadDbFiles();
+            inst.finishLoadingCallback();
+          });
+        });
       }
     }
     let supportedKeys = this.dexieDbService.getAvailableDatabases().map(d => d.key);

@@ -15,6 +15,7 @@ const NUMBER_OF_WIDGETS = 6;
 })
 export class AppComponent implements OnInit {
   title = 'drone-web-gui';
+  loadingInfoText: string;
   _mapType!: number;
   _showLoadingSpinner = false;
   private _localStorageValues : boolean[];
@@ -22,14 +23,20 @@ export class AppComponent implements OnInit {
   constructor(private dialog:MatDialog, private globals: Globals) {
     let inst = this;
     this._localStorageValues=[];
+    this.loadingInfoText = "";
     globals.loadCallback = () => {inst._showLoadingSpinner = true};
     globals.finishLoadingCallback = () => {inst._showLoadingSpinner = false};
   }
 
   ngOnInit(): void {
+    let inst = this;
     this.mapType = 1;
     this.getLocalStorageValues();
     this.updateInfoView();
+    document.addEventListener("spinnerInfoMessage", (event: any) => {
+      if(event.detail?.text)
+        inst.loadingInfoText = event.detail.text;
+    });
   }
 
   openDialog() {

@@ -7,9 +7,7 @@ import {
   GpsDbMessage, ImuAttiDbMessage, MotorCtrlDbMessage,
   OsdGeneralDataDbMessage, RecMagDbMessage
 } from "../../helpers/DroneWebGuiDatabase";
-import {tick} from "@angular/core/testing";
-import {first} from "rxjs/operators";
-import {getOrientationFromImuAttiMessage, getOrientationFromRecMagMessage} from "../../helpers/functions";
+import {getOrientationFromRecMagMessage} from "../../helpers/functions";
 
 @Component({
   selector: 'app-anomaly',
@@ -19,22 +17,40 @@ import {getOrientationFromImuAttiMessage, getOrientationFromRecMagMessage} from 
 export class AnomalyComponent implements OnInit, DroneMapWidget {
 
   public severityVar = Severity;
-  public checkingDone = true;
 
-  constructor(public globals: Globals, private dexieDbService: DroneWebGuiDatabase) {
+  constructor(public globals: Globals) {
     this.globals.subscribe(this);
     this._errors = [{text:"no file selected", mesNum:-1, severity:Severity.severe, headline: true}];
-    this._osdGenMes = [];
-    this._gpsMes = [];
-    this._ctrlMes = [];
-    this._imuAttiMes = [];
-    this._batteryMes = [];
-    this._recMagMes = [];
-    this._motorCtrlMes = [];
   }
 
   ngOnInit(): void {
   }
+  private _errors: error[];
+
+  get errors() {
+    return this._errors;
+  }
+
+  fileChanged(): void {
+    if (this.globals.file === null) {
+      this._errors = [{text:"no file selected", mesNum:-1, severity:Severity.severe, headline: true}];
+      return;
+    }
+    this._errors = this.globals.file.errors;
+  }
+
+  fileListChanged(): void {
+  }
+
+  update(): void {
+  }
+  sendMesNumEvent(mesNum: number) {
+    let evt = new CustomEvent("setTimeEvent", {detail: {messageNum: mesNum}});
+    document.dispatchEvent(evt);
+  }
+}
+
+export class AnomalyAnalyzer {
   private _errors: error[];
   private _osdGenMes: OsdGeneralDataDbMessage[];
   private _gpsMes: GpsDbMessage[];
@@ -45,26 +61,38 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
   private _orientations:orient[] = [];
   private _motorCtrlMes:MotorCtrlDbMessage[];
 
-  get errors() {
-    return this._errors;
+  constructor(private globals: Globals, private dexieDbService: DroneWebGuiDatabase, private fileId: number) {
+    this._errors = [];
+    this._osdGenMes = [];
+    this._gpsMes = [];
+    this._ctrlMes = [];
+    this._imuAttiMes = [];
+    this._batteryMes = [];
+    this._recMagMes = [];
+    this._motorCtrlMes = [];
   }
 
-  checkFlight() {
+  async checkFlight(cb: any) {
     console.log("anomaly check startet at " + new Date())
     this.prepareOrientations();
 
-    //
-    //this.checkTicks();
-    //this.checkTimeStamps();
-    //this.checkBattery(Severity.severe);
-//    this.checkThrottle(); //todo no idea how
-    //this.checkOrientationToCtrl(Severity.minor);
-    //this.checkOrientationChange();
-    this.checkRotorSpeed();
-
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking Ticks"}}));
+    await new Promise<void>(done => setTimeout(() => {this.checkTicks(); done();}, 500));
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking Timestamps"}}));
+    await new Promise<void>(done => setTimeout(() => {this.checkTimeStamps(); done();}, 500));
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking battery data"}}));
+    await new Promise<void>(done => setTimeout(() => {this.checkBattery(Severity.severe); done();}, 500));
+    //document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Throttle"}}));
+    //  await new Promise(done => setTimeout(() => {this.checkThrottle(); done();}, 5000));//todo no idea how
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking orientation"}}));
+    await new Promise<void>(done => setTimeout(() => {this.checkOrientationToCtrl(Severity.minor); done();}, 500));
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking orientation changes"}}));
+    await new Promise<void>(done => setTimeout(() => {this.checkOrientationChange(); done();}, 500));
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Rotor speed"}}));
+    await new Promise<void>(done => setTimeout(() => {this.checkRotorSpeed(); done();}, 500));
 
     let sevSev = false, sevMed = false;
-    this.errors.forEach(err => {
+    this._errors.forEach(err => {
       if (err.severity === Severity.severe)
         sevSev = true;
       if(err.severity === Severity.medium)
@@ -78,8 +106,8 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
       this._errors.push({text:"No severe anomalies detected.", mesNum:-1, severity: Severity.severe, headline: true})
     else if (this.globals.anomalyLevel == Severity.medium && !sevSev && !sevMed)
       this._errors.push({text:"No medium or severe anomalies detected.", mesNum:-1, severity: Severity.severe, headline: true})
-    this.checkingDone = true;
-    console.log("anomaly check finished at " + new Date())
+    console.log("anomaly check finished at " + new Date());
+    cb(this._errors);
   }
 
   prepareOrientations() {
@@ -208,7 +236,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
         batGoesUp.push({text:this._batteryMes[i].cap_per + '\% - ' + this._batteryMes[i+1].cap_per + "%", mesNum:this._batteryMes[i].messageNum, severity:severity, headline: false});
       }
       if(Math.abs(this._batteryMes[i+1].cap_per - this._batteryMes[i].cap_per) > 1) {
-        this.errors.push({text:this._batteryMes[i].cap_per + '\% - ' + this._batteryMes[i+1].cap_per + "%", mesNum:this._batteryMes[i].messageNum, severity:severity, headline: false});
+        this._errors.push({text:this._batteryMes[i].cap_per + '\% - ' + this._batteryMes[i+1].cap_per + "%", mesNum:this._batteryMes[i].messageNum, severity:severity, headline: false});
         batError = true;
       }
     }
@@ -352,81 +380,62 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
     })
   }
 
-  checkFlightValidity() {
+  async  getFlightErrors(cb: any) {
     let ct = 0;
     let inst = this;
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: preparing Data"}}));
 
     function onComplete() {
       ct++;
       if (ct === 7) {
-        inst.checkFlight();
+        inst.checkFlight(cb);
       }
     }
-    if (!this.globals.file)
+    if (!this.fileId)
       return;
     this.dexieDbService.osdGeneral.where('fileId')
-      .equals(this.globals.file.id).toArray().then(res => {
+      .equals(this.fileId).toArray().then(res => {
       this._osdGenMes = res;
       onComplete();
     });
     this.dexieDbService.gps.where('fileId')
-      .equals(this.globals.file.id).toArray().then(res => {
+      .equals(this.fileId).toArray().then(res => {
       this._gpsMes = res;
       onComplete();
     });
     this.dexieDbService.controller.where('fileId')
-      .equals(this.globals.file.id).toArray().then(res => {
+      .equals(this.fileId).toArray().then(res => {
       this._ctrlMes = res;
       onComplete();
     });
     this.dexieDbService.imuAtti.where('fileId')
-      .equals(this.globals.file.id).toArray().then(res => {
-        this._imuAttiMes = res;
-        onComplete();
-      });
+      .equals(this.fileId).toArray().then(res => {
+      this._imuAttiMes = res;
+      onComplete();
+    });
     this.dexieDbService.battery.where('fileId')
-      .equals(this.globals.file.id).toArray().then(res => {
+      .equals(this.fileId).toArray().then(res => {
       this._batteryMes = res;
       onComplete();
     });
     this.dexieDbService.recMag.where('fileId')
-      .equals(this.globals.file.id).toArray().then(res => {
+      .equals(this.fileId).toArray().then(res => {
       this._recMagMes = res;
       onComplete();
     });
     this.dexieDbService.motorCtrl.where('fileId')
-      .equals(this.globals.file.id).toArray().then(res => {
+      .equals(this.fileId).toArray().then(res => {
       this._motorCtrlMes = res;
       onComplete();
     });
   }
-
-  fileChanged(): void {
-    if (this.globals.file === null) {
-      this._errors = [{text:"no file selected", mesNum:-1, severity:Severity.severe, headline: true}];
-      return;
-    }
-    this._errors = [];
-    this.checkingDone = false;
-    this.checkFlightValidity();
-  }
-
-  fileListChanged(): void {
-  }
-
-  update(): void {
-  }
-  sendMesNumEvent(mesNum: number) {
-    let evt = new CustomEvent("setTimeEvent", {detail: {messageNum: mesNum}});
-    document.dispatchEvent(evt);
-  }
-
 }
+
 interface orient{
   degree: number;
   mesNum: number;
 }
-interface error{
+export interface error{
   text: string;
   mesNum: number;
   severity: Severity;

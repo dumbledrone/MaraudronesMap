@@ -22,5 +22,6 @@
 <ng-container *ngIf="_showLoadingSpinner">
   <div id="loadingSpinnerDiv">
     <mat-spinner></mat-spinner>
+    <span [innerText]="loadingInfoText"></span>
   </div>
 </ng-container>

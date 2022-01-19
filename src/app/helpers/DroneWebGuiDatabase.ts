@@ -1,5 +1,5 @@
 import Dexie, {Table} from 'dexie';
-import {Class} from "leaflet";
+import {error} from "../widget/anomaly/anomaly.component";
 
 export class DroneWebGuiDatabase extends Dexie {
   // Declare implicit table properties.
@@ -148,6 +148,7 @@ interface IDbFile {
   flightDate: string;
   flightStartTime: string;
   track: any[];
+  errors: error[];
 }
 
 export class DbFile {
@@ -169,11 +170,12 @@ export class DbFile {
   public flightDate: string;
   public flightStartTime: string;
   public track: any[];
+  public errors: error[];
 
   constructor(fileName: string, messageCount: number, flightDuration: number, startTime: number, id: number,
               minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number, altitude: number,
               gpsOffset: number, track: any[], fileDuration: number, timeOffset: number, timeUntilGPS: number,
-              timeUntilTakeOff: number, flightDate: string, flightStartTime: string) {
+              timeUntilTakeOff: number, flightDate: string, flightStartTime: string, errors: error[]) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.flightDuration = flightDuration;
@@ -193,6 +195,7 @@ export class DbFile {
     this.timeUntilTakeOff = timeUntilTakeOff;
     this.flightDate = flightDate;
     this.flightStartTime = flightStartTime;
+    this.errors = errors;
   }
 }
 

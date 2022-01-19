@@ -41,6 +41,15 @@ app-file-selector{
   position: absolute;
   left: 50%;
   top: 50%;
+  width: 10%;
+  height: 10%;
+  transform: translate(-50%, -50%);
+}
+#loadingSpinnerDiv > span {
+  color: white;
+  position: absolute;
+  left: 50%;
+  top: calc(60% + 2em);
   transform: translate(-50%, -50%);
 }
 
