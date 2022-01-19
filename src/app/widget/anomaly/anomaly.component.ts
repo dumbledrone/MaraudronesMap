@@ -50,6 +50,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
   }
 
   checkFlight() {
+    console.log("anomaly check startet at " + new Date())
     this.prepareOrientations();
 
     //
@@ -78,6 +79,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
     else if (this.globals.anomalyLevel == Severity.medium && !sevSev && !sevMed)
       this._errors.push({text:"No medium or severe anomalies detected.", mesNum:-1, severity: Severity.severe, headline: true})
     this.checkingDone = true;
+    console.log("anomaly check finished at " + new Date())
   }
 
   prepareOrientations() {

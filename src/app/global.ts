@@ -176,13 +176,19 @@ export class Globals {
         return;
       inst.loadCallback();
       let data = JSON.parse(<string>jsonFileReader.result);
-      data = data.sort((a: any, b: any) => a.messageid < b.messageid);
+      data = data.sort((a: any, b: any) => a.offset < b.offset);
+      if(data[0].offset > data[1].offset)
+        data.reverse();
       let usonicInd = data.indexOf(data.find((d: any) => d.pktId === 16 && d.usonic_h > 110));
       let usonicTime = data.find((d: any, ind: number) => d.pktId === 2096 && ind > usonicInd).time;
       let gpsData = data.filter((d: any) => d.pktId === 2096);
       let firstGPSMes = gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0);
       let gpsOffset = data.indexOf(firstGPSMes);
       let gpsDataOffset = gpsData.indexOf(firstGPSMes);
+      if(gpsDataOffset < 0)
+        gpsDataOffset = 0;
+      if(gpsOffset < 0)
+        gpsOffset = 0;
       gpsData.forEach((g: any) => g.distance = 0);
       let timeSeconds = timeStringToSecs(gpsData[gpsDataOffset].time);
       let time = "";
@@ -223,7 +229,10 @@ export class Globals {
       }
       let seconds = timeCol.length;
       let timeOffset = flightTime - seconds;
-      let timeUntilGPS = timeStringToSecs(gpsData[gpsDataOffset-1].time) - timeCol[0] + timeOffset;
+      let searchOffset = gpsDataOffset-1;
+      if(searchOffset < 0)
+        searchOffset = 0;
+      let timeUntilGPS = timeStringToSecs(gpsData[searchOffset].time) - timeCol[0] + timeOffset;
       let timeUntilTakeOff = timeStringToSecs(usonicTime) - timeCol[0] + timeOffset;
       console.log(new Date());
       let minLat = Math.min(...latCol);
