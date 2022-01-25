@@ -75,15 +75,14 @@ export class AnomalyAnalyzer {
   async checkFlight(cb: any) {
     console.log("anomaly check startet at " + new Date())
     this.prepareOrientations();
-
     document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking Ticks"}}));
     await new Promise<void>(done => setTimeout(() => {this.checkTicks(); done();}, 500));
     document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking Timestamps"}}));
     await new Promise<void>(done => setTimeout(() => {this.checkTimeStamps(); done();}, 500));
     document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking battery data"}}));
     await new Promise<void>(done => setTimeout(() => {this.checkBattery(Severity.severe); done();}, 500));
-    //document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Throttle"}}));
-    //  await new Promise(done => setTimeout(() => {this.checkThrottle(); done();}, 5000));//todo no idea how
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Throttle"}}));
+    await new Promise<void>(done => setTimeout(() => {this.checkThrottle(); done();}, 500));
     document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking orientation"}}));
     await new Promise<void>(done => setTimeout(() => {this.checkOrientationToCtrl(Severity.minor); done();}, 500));
     document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking orientation changes"}}));
@@ -158,7 +157,7 @@ export class AnomalyAnalyzer {
   //north: 0°, east 90° (end of scale), west -90°, south -180°, south to east: [-180°,-270°[
   //computed to positive values: North: 270, west 180, south 90, east 360
   //yaw input: [-10000,10000]
-  checkOrientationToCtrl(severity: Severity) {  //new object with interface or type
+  checkOrientationToCtrl(severity: Severity) {
     let orientationError = false;
     this._errors.push({text:"orientation in respect to controller input:", mesNum:-1, severity:severity, headline: true});
     this._ctrlMes.forEach(mes => {
@@ -339,8 +338,7 @@ export class AnomalyAnalyzer {
     let errorExists: boolean = false;
     this._motorCtrlMes[300].pwm4 = this._motorCtrlMes[300].pwm1 = 0;
     this._motorCtrlMes.forEach(mes => {
-      let controllerMes = this._ctrlMes.slice().sort((a:any, b: any) => Math.abs(b.messageNum-mes.messageNum) - Math.abs(a.messageNum-mes.messageNum)).pop();
-
+      let controllerMes = this.search(mes.messageNum, this._ctrlMes);
       if(mes.pwm1 === 0 && mes.pwm2 !== 0 && mes.pwm3 !== 0 && mes.pwm4 !== 0) {
         this._errors.push({text:"rotor 1 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
         errorExists = true;
@@ -365,19 +363,68 @@ export class AnomalyAnalyzer {
     }
   }
 
-  checkThrottle(severity: Severity) {
-    this._ctrlMes.forEach(mes => { //TODO what infos do we want?
-      let osdMes: GpsDbMessage | undefined;
-      for (let i = 0; i < this._gpsMes.length; i++) {
-        if (this._gpsMes[i].messageNum > mes.messageNum) {
-          osdMes = this._gpsMes[i];
+  checkThrottle() {
+    //check if controller says throttle up if rotors gain speed (all rotors)
+    let throttleError = false;
+    this._errors.push({text:"rotor speed in respect to controller input:", mesNum:-1, severity:Severity.minor, headline: true});
+    this._ctrlMes.forEach(mes => {
+      if(mes.ctrl_thr > -2000 && mes.ctrl_thr < 2000)  // little change -> rotor speeds will still vary to stand against wind etc.
+        return;
+      //look for last msg before and the 100 ahead
+      let before: MotorCtrlDbMessage | undefined;
+      let after: MotorCtrlDbMessage[] = [];
+      for (let i = 0; i < this._motorCtrlMes.length; i++) {
+        if(this._motorCtrlMes[i].messageNum < mes.messageNum)
+          before = this._motorCtrlMes[i];
+        else
+          after.push(this._motorCtrlMes[i]);
+        if (after.length >= 100)
           break;
-        }
       }
-      if (osdMes === undefined)
-        return;//TODO
-//      console.log("ctrl: " + mes.ctrl_thr + ", " +osdMes.altitude + " :osdMes")
+      if(before === undefined || after[0] === undefined) {
+        return;
+      }
+      let correct :number = mes.ctrl_thr > 0 ? 1 : -1;
+      for (let i = 0; i < after.length; i++) {
+        let tmp: number = this.checkThrot(mes.ctrl_thr, before, after[i]);
+        if(tmp === 0)
+          correct = tmp;
+      }
+      if(correct !== 0) {
+        throttleError = true;
+        let acc: string = correct > 0 ? "accelerate" : "decelerate"
+        this._errors.push({text:"Controller (throttle): " + mes.ctrl_thr + ", rotors do not "+acc+ ".", mesNum:mes.messageNum, severity:Severity.minor, headline: false})
+      }
     })
+    if(!throttleError)
+      this._errors.pop();
+  }
+  checkThrot(throttle: number, before: MotorCtrlDbMessage, after: MotorCtrlDbMessage): number{
+    if (throttle > 2000) { //go up
+      let num: number = 0;
+      if(before.pwm1 < after.pwm1)
+        num++;
+      if(before.pwm2 < after.pwm2)
+        num++;
+      if(before.pwm3 < after.pwm3)
+        num++;
+      if(before.pwm4 < after.pwm4)
+        num++;
+      if(num < 2) return 1;
+    } else if (throttle < -2000) { //go down
+      let num: number = 0;
+      if(before.pwm1 > after.pwm1)
+        num++;
+      if(before.pwm2 > after.pwm2)
+        num++;
+      if(before.pwm3 > after.pwm3)
+        num++;
+      if(before.pwm4 > after.pwm4)
+        num++;
+      if(num < 2)
+        return -1;
+    }
+    return 0;
   }
 
   async  getFlightErrors(cb: any) {
@@ -429,6 +476,28 @@ export class AnomalyAnalyzer {
       onComplete();
     });
   }
+  search(value: number, a: ControllerDbMessage[]): ControllerDbMessage {
+    if(value < a[0].messageNum) {
+      return a[0];
+    }
+    if(value > a[a.length-1].messageNum) {
+      return a[a.length-1];
+    }
+    let lo:number = 0;
+    let hi:number = a.length - 1;
+    while (lo <= hi) {
+      let mid:number = Math.round((hi + lo) / 2);
+      if (value < a[mid].messageNum) {
+        hi = mid - 1;
+      } else if (value > a[mid].messageNum) {
+        lo = mid + 1;
+      } else {
+        return a[mid];
+    }
+  }
+  // lo == hi + 1
+  return (a[lo].messageNum - value) < (value - a[hi].messageNum) ? a[lo] : a[hi];
+  }
 }
 
 interface orient{
@@ -449,6 +518,10 @@ export enum Severity {
 interface timesPerSec {
   times: number;
   firstMesNum: number;
+}
+interface throt{
+  throttle: number;
+  mesNum: number;
 }
 
 
