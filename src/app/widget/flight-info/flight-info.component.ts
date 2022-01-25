@@ -13,6 +13,7 @@ export class FlightInfoComponent implements OnInit, DroneMapWidget {
   public timeOffset: number = 0;
   public timeUntilGPS: number = 0;
   public timeUntilTakeOff: number = 0;
+  public productType: number = -1;
 
   constructor(private globals: Globals) {
     this.globals.subscribe(this);
@@ -31,6 +32,7 @@ export class FlightInfoComponent implements OnInit, DroneMapWidget {
       this.timeOffset = file.timeOffset;
       this.timeUntilGPS = file.timeUntilGPS;
       this.timeUntilTakeOff = file.timeUntilTakeOff;
+      this.productType = file.productType;
     } else {
       this.flightDate = "-";
       this.flightStartTime = "-";
@@ -38,6 +40,7 @@ export class FlightInfoComponent implements OnInit, DroneMapWidget {
       this.timeOffset = 0;
       this.timeUntilGPS = 0;
       this.timeUntilTakeOff = 0;
+      this.productType = -1;
     }
   }
 
@@ -47,4 +50,17 @@ export class FlightInfoComponent implements OnInit, DroneMapWidget {
   update(): void {
   }
 
+  getProductNameString(productType: number): string {
+    switch(productType) {
+      case -1:
+        return "-";
+      case 17:
+        return "Inspire 2 - only partial support, data might be invalid";
+      case 27:
+        return "Phantom 4 Advanced";
+      default:
+        console.log("unknown device type: " + productType);
+        return "This device is not recognized. Shown data might be invalid!"
+    }
+  }
 }

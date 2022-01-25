@@ -1,9 +1,23 @@
-# special marker comments
-`//#checkboxNumber`-comment: this must be adapted when the number of checkboxes in Appearance is changed.
-`//colorType`-comment: if another colorType is added, the according info has to be added here
 # DroneWebGui
+### Andreas Hellmich, Annika Knepper - 2022
+### [andreas.hellmich@fau.de](mailto:andreas.hellmich@fau.de)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.11.
+This application is implemented using the observer pattern, where every widget can easily be added or removed.\
+Therefore newly added widgets need to implement the `DroneMapWidget` interface and subscribe itself to the injectable `Gobals` object.\
+The interface enforces the implementation of three functions, which are called on the following occasions:
+* `fileChanged`: the selected file has been changed
+* `fileListChanged`: the list of available files has been changed - this will most likely be without any functionality in most cases
+* `update`: the current message has been changed
+
+# extending the application
+New drone types can be added by specifying them within `getProductNameString` of `FlightInfoComponent`.\
+If the new drone type has controller data that is not within (-10000,10000) it should additionally be adjusted in `fileChanged` of `ControllerStatusComponent`.
+
+Adding new DUML Message types (after implementing them within the DROP application) involves adding their definition within `DroneWebGuiDatabase` and defining their saving and loading within `Globals`.
+
+# special marker comments
+`//#checkboxNumber`-comment: this must be adapted when the number of checkboxes in Appearance is changed.\
+`//colorType`-comment: if another colorType is added, the according info has to be added here
 
 ## Development server
 

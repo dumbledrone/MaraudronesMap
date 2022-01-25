@@ -1,10 +1,7 @@
-import {Component, NgModule, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {AppearenceDialogueComponent} from "./helpers/appearence-dialogue/appearence-dialogue.component";
-import {DroneMapWidget, Globals, LineType} from "./global";
-import {global} from "@angular/compiler/src/util";
-import {AnomalyComponent} from "./widget/anomaly/anomaly.component";
-import {DroneWebGuiDatabase} from "./helpers/DroneWebGuiDatabase";
+import {Globals} from "./global";
 
 const NUMBER_OF_WIDGETS = 6;
 
@@ -18,7 +15,7 @@ export class AppComponent implements OnInit {
   loadingInfoText: string;
   _mapType!: number;
   _showLoadingSpinner = false;
-  private _localStorageValues : boolean[];
+  private readonly _localStorageValues : boolean[];
 
   constructor(private dialog:MatDialog, private globals: Globals) {
     let inst = this;

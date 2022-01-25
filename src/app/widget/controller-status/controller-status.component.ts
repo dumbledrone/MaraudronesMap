@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import {DroneMapWidget, Globals} from "../../global";
-import {DbFile} from "../../helpers/DroneWebGuiDatabase";
 
 @Component({
   selector: 'app-controller-status',
@@ -18,23 +17,27 @@ export class ControllerStatusComponent implements OnInit, DroneMapWidget {
   private _ctrl_roll: number = this.middle_left; //left: left, right
   private _ctrl_yaw: number = this.middle_right;  //right: left, right
   private _ctrl_thr: number = this.middle_height;  //right: up, down
+  private pitchMaxVal: number = 10000;
+  private rollMaxVal: number = 10000;
+  private yawMaxVal: number = 10000;
+  private thrMaxVal: number = 10000;
 
 
   set ctrl_pitch(newPitch: number) {
-    newPitch /= 10000/this.radius;
+    newPitch /= this.pitchMaxVal/this.radius;
     newPitch = -newPitch;
     this._ctrl_pitch = newPitch + this.middle_height;
   }
   set ctrl_roll(newRoll: number) {
-    newRoll /= 10000/this.radius;
+    newRoll /= this.rollMaxVal/this.radius;
     this._ctrl_roll = newRoll + this.middle_left;
   }
   set ctrl_yaw(newYaw: number) {
-    newYaw /= 10000/this.radius;
+    newYaw /= this.yawMaxVal/this.radius;
     this._ctrl_yaw = newYaw + this.middle_right;
   }
   set ctrl_thr(newThr: number) {
-    newThr /= 10000/this.radius;
+    newThr /= this.thrMaxVal/this.radius;
     newThr = -newThr;
     this._ctrl_thr = newThr + this.middle_height;
   }
@@ -51,7 +54,7 @@ export class ControllerStatusComponent implements OnInit, DroneMapWidget {
     let c: any = document.getElementById("controllerCanvas");
     if (!c)
       return;
-    var ctx = c.getContext("2d");
+    let ctx = c.getContext("2d");
     ctx.clearRect(0,0,c.width,c.height);
 
     //left rectangle
@@ -131,6 +134,32 @@ export class ControllerStatusComponent implements OnInit, DroneMapWidget {
   }
 
   fileChanged(): void {
+    if(!this.globals.file) {
+      this.pitchMaxVal = 10000;
+      this.rollMaxVal = 10000;
+      this.yawMaxVal = 10000;
+      this.thrMaxVal = 10000;
+      this.ctrl_thr = 0;
+      this.ctrl_roll = 0;
+      this.ctrl_yaw = 0;
+      this.ctrl_pitch = 0;
+      this.drawCanvas();
+    } else {
+      switch(this.globals.file.productType) {
+        case 17:
+          this.pitchMaxVal = 32727;
+          this.rollMaxVal = 16256;
+          this.yawMaxVal = 32727;
+          this.thrMaxVal = 16256;
+          break;
+        case 27:
+        default:
+          this.pitchMaxVal = 10000;
+          this.rollMaxVal = 10000;
+          this.yawMaxVal = 10000;
+          this.thrMaxVal = 10000;
+      }
+    }
   }
 
   fileListChanged(): void {

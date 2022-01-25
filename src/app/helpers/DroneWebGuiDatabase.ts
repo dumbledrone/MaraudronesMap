@@ -149,6 +149,7 @@ interface IDbFile {
   flightStartTime: string;
   track: any[];
   errors: error[];
+  productType: number;
 }
 
 export class DbFile {
@@ -171,11 +172,12 @@ export class DbFile {
   public flightStartTime: string;
   public track: any[];
   public errors: error[];
+  public productType: number;
 
   constructor(fileName: string, messageCount: number, flightDuration: number, startTime: number, id: number,
               minLatitude: number, maxLatitude: number, minLongitude: number, maxLongitude: number, altitude: number,
               gpsOffset: number, track: any[], fileDuration: number, timeOffset: number, timeUntilGPS: number,
-              timeUntilTakeOff: number, flightDate: string, flightStartTime: string, errors: error[]) {
+              timeUntilTakeOff: number, flightDate: string, flightStartTime: string, errors: error[], productType: number) {
     this.fileName = fileName;
     this.messageCount = messageCount;
     this.flightDuration = flightDuration;
@@ -196,6 +198,7 @@ export class DbFile {
     this.flightDate = flightDate;
     this.flightStartTime = flightStartTime;
     this.errors = errors;
+    this.productType = productType;
   }
 }
 

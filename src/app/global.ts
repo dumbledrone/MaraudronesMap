@@ -188,6 +188,7 @@ export class Globals {
         data.reverse();
       let usonicInd = data.indexOf(data.find((d: any) => d.pktId === 16 && d.usonic_h > 110));
       let usonicTime = data.find((d: any, ind: number) => d.pktId === 2096 && ind > usonicInd).time;
+      let productType = data.find((d: any) => d.pktId === 12).product_type;
       let gpsData = data.filter((d: any) => d.pktId === 2096);
       let firstGPSMes = gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0);
       let gpsOffset = data.indexOf(firstGPSMes);
@@ -264,7 +265,8 @@ export class Globals {
         flightDate: date.toDateString(),
         flightStartTime: time,
         track: [],
-        errors: []
+        errors: [],
+        productType: productType
       }).then((res: number) => {
         inst.handleDataArray(res, data);
         inst._file = null;
@@ -473,7 +475,7 @@ export class Globals {
             inst.loadDbFiles();
             inst.finishLoadingCallback();
           });
-        });
+        }).then();
       }
     }
     let supportedKeys = this.dexieDbService.getAvailableDatabases().map(d => d.key);
@@ -526,27 +528,9 @@ export class Globals {
         inst.dexieDbService.files.update(inst._dbFile.id, {track: []}).then(() => inst.fileChanged());
         return;
       }
-      this.smoothTrack(vertices, gpsMessages.length);
       inst._dbFile.track = vertices;
       inst.dexieDbService.files.update(inst._dbFile.id, {track: vertices}).then(() => inst.fileChanged());
     });
-  }
-  smoothTrack(vertices: any[], gpsMessagesLength: number){
-      //maybeTodo: smoothen line
-      let edges: any[] = [];
-      //compute edges
-      let changed: boolean = true;
-      for (let i = 0; i < gpsMessagesLength && changed; i++) {
-        changed = false;
-        //compute angle = Steigung m
-        //if angle difference < sthConst delete earlier one --> update edges
-        //if deleted: changed = true;
-        //never delete first
-
-      }
-      //maybeTodo maybe take only every fifth
-      //maybeTodo finally: set indices without spaces
-
   }
 
   set lineType(lineTypeNew:LineType) {
