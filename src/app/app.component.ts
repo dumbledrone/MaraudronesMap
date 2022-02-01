@@ -11,7 +11,7 @@ const NUMBER_OF_WIDGETS = 6;
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'drone-web-gui';
+  title = 'Maraudrone\'s Map';
   loadingInfoText: string;
   _mapType!: number;
   _showLoadingSpinner = false;

@@ -1,4 +1,4 @@
-# DroneWebGui
+# Maraudrone's Map
 ### Andreas Hellmich, Annika Knepper - 2022
 ### [andreas.hellmich@fau.de](mailto:andreas.hellmich@fau.de)
 
