@@ -6,7 +6,7 @@
   --size: 25px;
   --right-margin: 25px;
   --top-margin: 25px;
-  --z-index: 1001;
+  --z-index: 999;
 }
 
 #map-info-button {

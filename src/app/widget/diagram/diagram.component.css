@@ -29,6 +29,20 @@
   display: inline-block;
 }
 
+#infoChartContainer {
+  height: 200px;
+  padding-top: 0;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.full-screen #infoChartContainer {
+  height: 90vh;
+  padding-top: 44px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 #infoChart {
   position: initial;
 }

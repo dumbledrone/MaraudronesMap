@@ -419,7 +419,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.osdHome.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 1000], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._osdHomeMessage = res.slice(-1).pop();
       if(this._osdHomeMessage?.messageNum === messageId)

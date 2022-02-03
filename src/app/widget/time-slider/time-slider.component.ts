@@ -204,7 +204,6 @@ export class TimeSliderComponent implements OnInit, DroneMapWidget {
     this.updateButtonText();
     if(this.play)
       this.simulateFlight();
-    console.log("play value: " + this.play)
   }
 
   simulateFlight() {

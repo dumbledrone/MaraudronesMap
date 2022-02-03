@@ -6,9 +6,10 @@
 <div id="infoChartBgDiv">
   <div id="infoChartDiv">
     <span class="material-icons grey fullscreen-button" title="exit full screen" style="transform: scaleY(-1); margin: 10px; cursor: pointer; float: right" (click)="collapseGraph()">tab_unselected</span>
-    <!--<span class="material-icons grey fullscreen-button" title="edit data" style="cursor: pointer; margin: 10px; float: right" (click)="toggleGraphSettings()">build</span>-->
     <span class="material-icons grey fullscreen-button" title="reset zoom" style="cursor: pointer; margin: 10px; float: right" (click)="resetZoom()">zoom_out_map</span>
-    <canvas id="infoChart"></canvas>
+    <div id="infoChartContainer">
+      <canvas id="infoChart"></canvas>
+    </div>
     <div id="settingsDiv" style="display: none" class="noSelect">
       <input type="checkbox" id="showAllData" [(ngModel)]="showAllData" (change)="saveShowDataState()"><label>Enable raw data selection</label><br/>
       <span class="material-icons grey" title="add data" style="cursor: pointer; margin: 10px; float: right" (click)="addEntry()">add_box</span>

@@ -238,6 +238,9 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
 
   drawChart(dataset: any) {
     let inst = this;
+    let mesNum = 0;
+    if(this.globals.latestMessage)
+      mesNum = this.globals.latestMessage.messageNum;
     const chart: any = document.getElementById('infoChart');
     this.myChart = new Chart(chart, {
       type: 'scatter',
@@ -289,7 +292,7 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
               // @ts-ignore
               mode: 'vertical',
               scaleID: 'x',
-              value: 0,
+              value: mesNum,
               borderColor: 'darkblue',
               borderWidth: 2,
               /*label: {
@@ -304,7 +307,6 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         tooltip: {
           callbacks: {
             label: function(context: any) {
-              console.log(context)
               return "test";
             }
           }
@@ -357,7 +359,7 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
       this.prepareChartData().then();
     }
     // @ts-ignore
-    document.getElementById("infoChart")?.style.display = this.inEditMode ? "none" : "block";
+    document.getElementById("infoChartContainer")?.style.display = this.inEditMode ? "none" : "block";
     // @ts-ignore
     document.getElementById("settingsDiv")?.style.display = this.inEditMode ? "block" : "none";
   }
