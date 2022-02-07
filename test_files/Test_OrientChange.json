@@ -1,0 +1,115 @@
+[
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "latitude": 49.5841,
+        "longitude": 11.01674,
+        "altitude": -17.0,
+        "velN": 0.0,
+        "velE": 0.0,
+        "velD": 0.0,
+        "messageid": 0,
+        "pktId": 2096,
+        "offset": 54645
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "latitude": 49.5839,
+        "longitude": 11.01672,
+        "altitude": -17.0,
+        "velN": 0.0,
+        "velE": 0.0,
+        "velD": 0.0,
+        "messageid": 1,
+        "pktId": 2096,
+        "offset": 72918
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "latitude": 49.5837,
+        "longitude": 11.01670,
+        "altitude": -17.0,
+        "velN": 0.0,
+        "velE": 0.0,
+        "velD": 0.0,
+        "messageid": 2,
+        "pktId": 2096,
+        "offset": 54645
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "latitude": 49.5835,
+        "longitude": 11.01668,
+        "altitude": -17.0,
+        "velN": 0.0,
+        "velE": 0.0,
+        "velD": 0.0,
+        "messageid": 3,
+        "pktId": 2096,
+        "offset": 54645
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "latitude": 49.5833,
+        "longitude": 11.01666,
+        "altitude": -17.0,
+        "velN": 0.0,
+        "velE": 0.0,
+        "velD": 0.0,
+        "messageid": 4,
+        "pktId": 2096,
+        "offset": 54645
+    },
+    {
+        "magX": -70,
+        "magY": -823,
+        "magZ": 1524,
+        "messageid": 5,
+        "pktId": 2256,
+        "offset": 21002
+    },
+    {
+        "magX": -240,
+        "magY": -763,
+        "magZ": 1724,
+        "messageid": 6,
+        "pktId": 2256,
+        "offset": 21002
+    },
+    {
+        "magX": -499,
+        "magY": -657,
+        "magZ": 1924,
+        "messageid": 7,
+        "pktId": 2256,
+        "offset": 21002
+    },
+    {
+        "magX": -591,
+        "magY": 182,
+        "magZ": 1524,
+        "messageid": 8,
+        "pktId": 2256,
+        "offset": 21002
+    },
+    {
+        "magX": 477,
+        "magY": 440,
+        "magZ": 1724,
+        "messageid": 9,
+        "pktId": 2256,
+        "offset": 21002
+    },
+    {
+        "magX": 513,
+        "magY": 430,
+        "magZ": 1924,
+        "messageid": 10,
+        "pktId": 2256,
+        "offset": 21002
+    }
+]

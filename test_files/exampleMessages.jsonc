@@ -1,0 +1,97 @@
+[
+// GpsDbMessage
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "longitude": 0.0,
+        "latitude": 0.0,
+        "altitude": -17.0,
+        "velN": 0.0,
+        "velE": 0.0,
+        "velD": 0.0,
+        "hdop": 99.99,
+        "pdop": 99.99,
+        "hacc": 0.0,
+        "sacc": 37500001.28,
+        "numGPS": 0,
+        "numGLN": 0,
+        "numSV": 0,
+        "messageid": 31654020,
+        "pktId": 2096,
+        "offset": 54645
+    },
+// ControllerDbMessage - "controller"
+    {
+        "ctrl_tick": 3,
+        "ctrl_pitch": 0,
+        "ctrl_roll": 0,
+        "ctrl_yaw": 0,
+        "ctrl_thr": 0,
+        "ctrl_mode": 0,
+        "mode_switch": 0,
+        "motor_state": 0,
+        "sig_level": 0,
+        "ctrl_level": 0,
+        "sim_model": 0,
+        "max_height": 30,
+        "max_radius": 50,
+        "D2H_x": 0.0,
+        "D2H_y": 0.0,
+        "act_req_id": 0,
+        "act_act_id": 5,
+        "cmd_mod": 0,
+        "mod_req_id": 0,
+        "fw_flag": 0,
+        "mot_sta": 0,
+        "OH_take": 0,
+        "rc_cnt": 0,
+        "sup_rc": 0,
+        "messageid": 29003711,
+        "pktId": 1000,
+        "offset": 22303
+    },
+// BatteryDbMessage - "battery"
+    {
+        "ad_v": 0,
+        "r_time": 0,
+        "ave_I": 0.0,
+        "vol_t": 0.0,
+        "pack_ve": 0,
+        "I": 0,
+        "r_cap": 0,
+        "cap_per": 0,
+        "temp": 0,
+        "right": 0,
+        "l_cell": 0,
+        "dyna_cnt": 0,
+        "f_cap": 0,
+        "out_ctl": 0.0,
+        "out_ctl_f": 0.0,
+        "messageid": 28834074,
+        "pktId": 1710,
+        "offset": 17109
+    },
+// RecMagDbMessage - "recMag" //probably
+    {
+        "magX": 729,
+        "magY": -164,
+        "magZ": 1524,
+        "messageid": 28929340,
+        "pktId": 2256,
+        "offset": 21002
+    },
+// MotorCtrlDbMessage - "motorCtrl"
+    {
+        "pwm1": 26,
+        "pwm2": 26,
+        "pwm3": 26,
+        "pwm4": 26,
+        "pwm5": 0,
+        "pwm6": 0,
+        "pwm7": 0,
+        "pwm8": 0,
+        "messageid": 640516683,
+        "pktId": 1307,
+        "offset": 14909831
+    }
+]

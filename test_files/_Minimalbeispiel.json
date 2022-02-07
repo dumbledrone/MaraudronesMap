@@ -1,0 +1,52 @@
+[
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "longitude": 0.0,
+        "latitude": 0.0,
+        "altitude": -17.0,
+        "messageid": 31654020,
+        "pktId": 2096,
+        "offset": 54645
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "longitude": 0.0,
+        "latitude": 0.0,
+        "altitude": -17.0,
+        "messageid": 32588197,
+        "pktId": 2096,
+        "offset": 72918
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "longitude": 0.0,
+        "latitude": 0.0,
+        "altitude": -17.0,
+        "messageid": 31654020,
+        "pktId": 2096,
+        "offset": 54645
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "longitude": 0.0,
+        "latitude": 0.0,
+        "altitude": -17.0,
+        "messageid": 31654020,
+        "pktId": 2096,
+        "offset": 54645
+    },
+    {
+        "date": 20151018,
+        "time": "0:0:0",
+        "longitude": 0.0,
+        "latitude": 0.0,
+        "altitude": -17.0,
+        "messageid": 31654020,
+        "pktId": 2096,
+        "offset": 54645
+    }
+]
