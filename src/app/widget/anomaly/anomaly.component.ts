@@ -52,10 +52,8 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
 
 export class AnomalyAnalyzer {
   private _errors: error[];
-  private _osdGenMes: OsdGeneralDataDbMessage[];
   private _gpsMes: GpsDbMessage[];
   private _ctrlMes: ControllerDbMessage[];
-  private _imuAttiMes: ImuAttiDbMessage[];
   private _batteryMes: BatteryDbMessage[];
   private _recMagMes: RecMagDbMessage[];
   private _orientations:orient[] = [];
@@ -63,10 +61,8 @@ export class AnomalyAnalyzer {
 
   constructor(private globals: Globals, private dexieDbService: DroneWebGuiDatabase, private fileId: number) {
     this._errors = [];
-    this._osdGenMes = [];
     this._gpsMes = [];
     this._ctrlMes = [];
-    this._imuAttiMes = [];
     this._batteryMes = [];
     this._recMagMes = [];
     this._motorCtrlMes = [];
@@ -173,7 +169,6 @@ export class AnomalyAnalyzer {
           break;
       }
       if(before === undefined || after[0] === undefined) {
-        console.log("anomaly - checkOrientation: couldn't find an earlier or a later orientation.")
         return;
       }
       let correct = false;
@@ -281,14 +276,16 @@ export class AnomalyAnalyzer {
     let firstJump:boolean = true;
     let ignoreTheseTimesAroundJump:number[] = [-1,-1];
     this._errors.push({text:"Time Stamps: gaps between these consecutive time stamps:", mesNum:-1, severity:severityGaps, headline: true})
-    for (let i = 0; i < this._gpsMes.length - 1; i++) {
+    for (let i = 0; i < this._gpsMes.length; i++) {
       let time = timeStringToSecs(this._gpsMes[i].time);
-      let timeI2 = timeStringToSecs(this._gpsMes[i+1].time);
       //count how many messages there are per second
       timesPerSecond[time].times++;
       if(timesPerSecond[time].firstMesNum === -1)
         timesPerSecond[time].firstMesNum = this._gpsMes[i].messageNum;
+      if(i === this._gpsMes.length - 1)
+        break;
       //check for jumps except first one
+      let timeI2 = timeStringToSecs(this._gpsMes[i+1].time);
       if(timeI2 - time > 1){
         if(firstJump) {
           ignoreTheseTimesAroundJump = [time, timeI2];
@@ -306,7 +303,6 @@ export class AnomalyAnalyzer {
       timesPerSecond[ignoreTheseTimesAroundJump[0]].times = 5;
       timesPerSecond[ignoreTheseTimesAroundJump[1]].times = 5;
     }
-    timeError = false;
     this._errors.push({text:"Time Stamps: other number than 4-6 per second:", mesNum:-1, severity:severity6, headline: true})
     let indHeadline = this._errors.length - 1;
     let sev4used: boolean = false;
@@ -333,34 +329,37 @@ export class AnomalyAnalyzer {
 
 
   checkRotorSpeed() {
-    let tmpErrors: error[] = [];
-    this._errors.push({text: "One rotor stopped working while the others continued", mesNum: -1, severity: Severity.severe, headline: true});
+    this._errors.push({text: "At least one rotor stopped working while motor is on", mesNum: -1, severity: Severity.severe, headline: true});
     let errorExists: boolean = false;
-    this._motorCtrlMes[300].pwm4 = this._motorCtrlMes[300].pwm1 = 0;
     this._motorCtrlMes.forEach(mes => {
       let controllerMes = this.search(mes.messageNum, this._ctrlMes);
-      if(mes.pwm1 === 0 && mes.pwm2 !== 0 && mes.pwm3 !== 0 && mes.pwm4 !== 0) {
-        this._errors.push({text:"rotor 1 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
+      let pwms:number[] = [];
+      if(mes.pwm1 === 0)
+        pwms.push(1);
+      if(mes.pwm2 === 0)
+        pwms.push(2);
+      if(mes.pwm3 === 0)
+        pwms.push(3);
+      if(mes.pwm4 === 0)
+        pwms.push(4);
+      if(pwms.length === 1 && controllerMes?.mot_sta !==0) {
+        this._errors.push({text: "Rotor " + pwms[0] + " stopped", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
         errorExists = true;
-      } else if(mes.pwm1 !== 0 && mes.pwm2 === 0 && mes.pwm3 !== 0 && mes.pwm4 !== 0) {
-        this._errors.push({text:"rotor 2 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
+      } else if(pwms.length > 0 && controllerMes?.mot_sta !== 0) {
+        let tmpString: string = "Rotors " + pwms[0]
+        for(let i = 1; i < pwms.length; i++) {
+          if(i < pwms.length - 1)
+            tmpString = tmpString + ", " + pwms[i];
+          else
+            tmpString = tmpString + " and "+ pwms[i];
+        }
+        tmpString = tmpString + " stopped"
+        this._errors.push({text: tmpString, mesNum: mes.messageNum, severity: Severity.severe, headline: false})
         errorExists = true;
-      } else if(mes.pwm1 !== 0 && mes.pwm2 !== 0 && mes.pwm3 === 0 && mes.pwm4 !== 0) {
-        this._errors.push({text:"rotor 3 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
-        errorExists = true;
-      } else if(mes.pwm1 !== 0 && mes.pwm2 !== 0 && mes.pwm3 !== 0 && mes.pwm4 === 0) {
-        this._errors.push({text:"rotor 4 stopped while the others are still rotating", mesNum: mes.messageNum, severity: Severity.severe, headline: false})
-        errorExists = true;
-      } else if ((mes.pwm1 === 0 || mes.pwm2 === 0 || mes.pwm3 === 0 || mes.pwm4 === 0) && controllerMes?.mot_sta !== 0) {
-        tmpErrors.push({text: "at least one rotor stopped working while motor is on", mesNum: mes.messageNum, severity: Severity.minor, headline: false})
       }
     })
     if(!errorExists)
       this._errors.pop();
-    if(tmpErrors.length !== 0) {
-      this._errors.push({text: "Rotors touched zero revolutions while motor running", mesNum: -1, severity: Severity.minor, headline: true})
-      this._errors = this._errors.concat(tmpErrors);
-    }
   }
 
   checkThrottle() {
@@ -434,17 +433,12 @@ export class AnomalyAnalyzer {
 
     function onComplete() {
       ct++;
-      if (ct === 7) {
+      if (ct === 5) {
         inst.checkFlight(cb);
       }
     }
     if (!this.fileId)
       return;
-    this.dexieDbService.osdGeneral.where('fileId')
-      .equals(this.fileId).toArray().then(res => {
-      this._osdGenMes = res;
-      onComplete();
-    });
     this.dexieDbService.gps.where('fileId')
       .equals(this.fileId).toArray().then(res => {
       this._gpsMes = res;
@@ -453,11 +447,6 @@ export class AnomalyAnalyzer {
     this.dexieDbService.controller.where('fileId')
       .equals(this.fileId).toArray().then(res => {
       this._ctrlMes = res;
-      onComplete();
-    });
-    this.dexieDbService.imuAtti.where('fileId')
-      .equals(this.fileId).toArray().then(res => {
-      this._imuAttiMes = res;
       onComplete();
     });
     this.dexieDbService.battery.where('fileId')

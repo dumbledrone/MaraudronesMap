@@ -215,24 +215,38 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
     switch (type) {
       case LineType.height:
         let heights = this.globals.file.track.map(t => t.altitude);
-        colorScale = new ColorScale(Math.min(...heights),Math.max(...heights), ["#00ff00", '#0000ff']);
+        let min1 = Math.min(...heights), max1 = Math.max(...heights);
+        if(min1 === max1) {
+          max1 = min1 + 1;
+        }
+        colorScale = new ColorScale(min1, max1, ["#00ff00", '#0000ff']);
         trackGeoJson.forEach( line => {
           line.properties.colorValue = line.properties.altitude;
         });
         break;
       case LineType.time:
-        colorScale = new ColorScale(0,this.globals.file.track.length - 1, ["#ff0014", '#ffc300', '#00ff00', '#0000ff']);
+        let max2 = this.globals.file.track.length - 1;
+        if(max2 === 0) {
+          max2 = 1;
+        }
+        colorScale = new ColorScale(0,max2, ["#ff0014", '#ffc300', '#00ff00', '#0000ff']);
         break;
       case LineType.speed:
         let speeds = this.globals.file.track.map(t => t.speed);
-        colorScale = new ColorScale(0,Math.max(...speeds), ["#00ff00", '#0000ff']);
+        let max3 = Math.max(...speeds);
+        if(max3 === 0)
+          max3 = 1;
+        colorScale = new ColorScale(0, max3, ["#00ff00", '#0000ff']);
         trackGeoJson.forEach( line => {
           line.properties.colorValue = line.properties.speed;
         });
         break;
       case LineType.none:
       default:
-        colorScale = new ColorScale(0,this.globals.file.track.length - 1, ['#000000','#000000']);
+        let max4 = this.globals.file.track.length - 1;
+        if(max4 === 0)
+          max4 = 1;
+        colorScale = new ColorScale(0, max4, ['#000000','#000000']);
     }
     return {"geoJson":trackGeoJson, "colorScale":colorScale};
   }
@@ -248,6 +262,8 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
         let heights = this.globals.file.track.map(t => t.altitude);
         let minHeight = Math.min(...heights);
         let maxHeight = Math.max(...heights);
+        if(minHeight === maxHeight)
+          maxHeight = minHeight + 1;
         colorScale = new ColorScale(minHeight, maxHeight, ["#00ff00", '#0000ff']);
         let heightDelta = maxHeight - minHeight;
         let digits = heightDelta > 15 ? 0 : 1;
@@ -281,6 +297,8 @@ export class MapComponent implements OnInit, OnChanges, DroneMapWidget {
       case LineType.speed:
         let speeds = this.globals.file.track.map(t => t.speed);
         let maxSpeed = Math.max(...speeds);
+        if(maxSpeed === 0)
+          maxSpeed = 1;
         colorScale = new ColorScale(0, maxSpeed, ["#00ff00", '#0000ff']);
         for (let i = 0; i <= numLabels; i++) {
           let val = maxSpeed / numLabels * i;
