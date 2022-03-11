@@ -118,12 +118,18 @@ export class AnomalyAnalyzer {
     let indHealine = this._errors.length - 1;
     for (let i = 0; i < this._orientations.length - 1; i++) {
       if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 100)) {
+        if (this._orientations[i].mesNum == 0)
+          continue;
         this._errors.push({text:"orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.severe, headline: false});
         errSev = true;
       } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 50)) {
+        if (this._orientations[i].mesNum == 0)
+          continue;
         this._errors.push({text:"orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.medium, headline: false});
         errMed = true;
       } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 15)) {
+        if (this._orientations[i].mesNum == 0)
+          continue;
         this._errors.push({text:"orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.minor, headline: false});
         errMin = true;
       }
