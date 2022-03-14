@@ -114,7 +114,7 @@ export class AnomalyAnalyzer {
   //360° exists, 0° not
   checkOrientationChange() {
     let errSev, errMed, errMin = false;
-    this._errors.push({text:"change of orientation too big:", mesNum:-1, severity:Severity.severe, headline: true});
+    this._errors.push({text:"Change of orientation too big:", mesNum:-1, severity:Severity.severe, headline: true});
     let indHealine = this._errors.length - 1;
     for (let i = 0; i < this._orientations.length - 1; i++) {
       if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 100)) {
@@ -161,7 +161,7 @@ export class AnomalyAnalyzer {
   //yaw input: [-10000,10000]
   checkOrientationToCtrl(severity: Severity) {
     let orientationError = false;
-    this._errors.push({text:"orientation in respect to controller input:", mesNum:-1, severity:severity, headline: true});
+    this._errors.push({text:"Orientation in respect to controller input:", mesNum:-1, severity:severity, headline: true});
     this._ctrlMes.forEach(mes => {
       //look for last msg before and the five ahead
       let before: orient | undefined;
@@ -371,7 +371,7 @@ export class AnomalyAnalyzer {
   checkThrottle() {
     //check if controller says throttle up if rotors gain speed (all rotors)
     let throttleError = false;
-    this._errors.push({text:"rotor speed in respect to controller input:", mesNum:-1, severity:Severity.minor, headline: true});
+    this._errors.push({text:"Rotor speed in respect to controller input:", mesNum:-1, severity:Severity.minor, headline: true});
     this._ctrlMes.forEach(mes => {
       if(mes.ctrl_thr > -2000 && mes.ctrl_thr < 2000)  // little change -> rotor speeds will still vary to stand against wind etc.
         return;
