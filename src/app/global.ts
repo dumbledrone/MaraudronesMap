@@ -214,10 +214,10 @@ export class Globals {
         parseInt(dateString.substr(4,2)),
         parseInt(dateString.substr(6, 2)));
       let altitude = 0;
-      if (gpsData[gpsOffset]) {
-        altitude = gpsData[gpsOffset].altitude;
+      if (gpsData[gpsDataOffset]) {
+        altitude = gpsData[gpsDataOffset].altitude;
         let distance = 0;
-        for (let i = gpsOffset; i+1 < gpsData.length; i++) {
+        for (let i = gpsDataOffset; i+1 < gpsData.length; i++) {
           let d1 = gpsData[i], d2 = gpsData[i+1];
           distance += coordinatesToM(d1.latitude, d1.longitude, d2.latitude, d2.longitude);
           d2.distance = distance;
