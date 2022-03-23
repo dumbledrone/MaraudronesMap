@@ -495,6 +495,7 @@ export class Globals {
   public deleteFile() {
     let inst = this;
     let ct = 0;
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Deleting file: " + inst._dbFile?.fileName}}));
     let tables = this.dexieDbService.getAvailableDatabases();
     function complete() {
       ct++;

@@ -170,7 +170,7 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
     switch(database) {
       case "16":
         if(attribute === "usonic_h")
-          attributePrintName = "height ultrasonic sensor (mm)";
+          attributePrintName = "Height Ultrasonic Sensor (mm)";
         getDataFromDatabase(this.dexieDbService.ultrasonic, database);
         break;
       case "1000":
@@ -182,14 +182,14 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         break;
       case "1710":
         if(attribute === "cap_per")
-          attributePrintName = "battery capacity (%)";
+          attributePrintName = "Battery Capacity (%)";
         else if (attribute === "temp")
-          attributePrintName = "temp (°C)";
+          attributePrintName = "Temp (°C)";
         getDataFromDatabase(this.dexieDbService.battery, database);
         break;
       case "2096":
         if(attribute === "altitude")
-          attributePrintName = "altitude (m)";
+          attributePrintName = "Altitude (m)";
         getDataFromDatabase(this.dexieDbService.gps, database);
         break;
       case "12":
@@ -211,19 +211,19 @@ export class DiagramComponent implements OnInit, DroneMapWidget {
         getDataFromDatabase(this.dexieDbService.motorCtrl, database);
         break;
       case "speed":
-        attributePrintName = "speed (m/s)";
+        attributePrintName = "Speed (m/s)";
         getSpecialFromDatabase(this.dexieDbService.gps, database);
         break;
       case "verticalSpeed":
-        attributePrintName = "vertical speed (m/s)";
+        attributePrintName = "Vertical Speed (m/s)";
         getSpecialFromDatabase(this.dexieDbService.gps, database);
         break;
       case "horizontalSpeed":
-        attributePrintName = "horizontal speed (m/s)";
+        attributePrintName = "Horizontal Speed (m/s)";
         getSpecialFromDatabase(this.dexieDbService.gps, database);
         break;
       case "distance":
-        attributePrintName = "distance (m)";
+        attributePrintName = "Distance (m)";
         getSpecialFromDatabase(this.dexieDbService.gps, database);
         break;
       case "D2H":

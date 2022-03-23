@@ -19,10 +19,10 @@
           <select [(ngModel)]="dat.data" style="margin-left: 10px" (change)="dataArrUpdated()">
             <option value="">No data.</option>
             <optgroup label="general">
-              <option value="speed">speed</option>
-              <option value="verticalSpeed">vertical speed</option>
-              <option value="horizontalSpeed">horizontal speed</option>
-              <option value="distance">distance</option>
+              <option value="speed">Speed</option>
+              <option value="verticalSpeed">Vertical Speed</option>
+              <option value="horizontalSpeed">Horizontal Speed</option>
+              <option value="distance">Distance</option>
               <option value="D2H">Vertical distance to Home</option>
             </optgroup>
             <optgroup label="{{type.database.name}}" *ngFor="let type of availableDBs">
@@ -34,32 +34,32 @@
           <select [(ngModel)]="dat.data" style="margin-left: 10px" (change)="dataArrUpdated()">
             <option value="">No data.</option>
             <optgroup label="general">
-              <option value="speed">speed</option>
-              <option value="verticalSpeed">vertical speed</option>
-              <option value="horizontalSpeed">horizontal speed</option>
-              <option value="distance">distance</option>
-              <option value="D2H">Vertical distance to Home</option>
-              <option value="16-usonic_h">height (Ultrasonic sensor)</option>
+              <option value="speed">Speed</option>
+              <option value="verticalSpeed">Vertical Speed</option>
+              <option value="horizontalSpeed">Horizontal Speed</option>
+              <option value="distance">Distance</option>
+              <option value="D2H">Horizontal Distance to Home</option>
+              <option value="16-usonic_h">Height (Ultrasonic sensor)</option>
             </optgroup>
             <optgroup label="gps">
-              <option value="2096-altitude">altitude</option>
-              <option value="2096-numGPS">#satellites</option>
+              <option value="2096-altitude">Altitude</option>
+              <option value="2096-numGPS">#Satellites</option>
             </optgroup>
             <optgroup label="battery">
-              <option value="1710-cap_per">battery capacity</option>
-              <option value="1710-temp">battery temperature</option>
-              <option value="1710-r_time">return time</option>
+              <option value="1710-cap_per">Battery Capacity</option>
+              <option value="1710-temp">Battery Temperature</option>
+              <option value="1710-r_time">Return Time</option>
             </optgroup>
             <optgroup label="controller">
-              <option value="1000-ctrl_pitch">controller pitch</option>
-              <option value="1000-ctrl_roll">controller roll</option>
-              <option value="1000-ctrl_yaw">controller yaw</option>
-              <option value="1000-ctrl_thr">controller throttle</option>
-              <option value="1000-D2H_x">Vertical distance to Home (x)</option>
-              <option value="1000-D2H_y">Vertical distance to Home (y)</option>
+              <option value="1000-ctrl_pitch">Controller Pitch</option>
+              <option value="1000-ctrl_roll">Controller Roll</option>
+              <option value="1000-ctrl_yaw">Controller Yaw</option>
+              <option value="1000-ctrl_thr">Controller Throttle</option>
+              <option value="1000-D2H_x">Horizontal Distance to Home (x)</option>
+              <option value="1000-D2H_y">Horizontal Distance to Home (y)</option>
             </optgroup>
             <optgroup label="OsdGeneral">
-              <option value="12-gohome_landing_reason">go home landing reason</option>
+              <option value="12-gohome_landing_reason">Go Home Landing Reason</option>
             </optgroup>
             <option value="{{dat.data}}">{{dat.data.split("-")[1]}}</option>
           </select>
