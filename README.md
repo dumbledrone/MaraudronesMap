@@ -20,6 +20,10 @@ Adding new DUML Message types (after implementing them within the DROP applicati
 `//colorType`-comment: if another colorType is added, the according info has to be added here
 
 ## Development server
+### Installation (Windows)
+1. Download and install [Node.js](https://nodejs.org/en/download/)
+2. Start Nord.js command prompt and enter: `npm install -g @angular/cli`
+
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
 
