@@ -23,6 +23,8 @@ Adding new DUML Message types (after implementing them within the DROP applicati
 ### Installation (Windows)
 1. Download and install [Node.js](https://nodejs.org/en/download/)
 2. Start Nord.js command prompt and enter: `npm install -g @angular/cli`
+3. Install modules `npm install`
+4. Run: `ng serve`
 
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
