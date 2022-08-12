@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {DroneMapWidget, Globals} from "../../global";
+import {DroneMapWidget, DroneType, Globals} from "../../global";
 
 @Component({
   selector: 'app-controller-status',
@@ -146,13 +146,14 @@ export class ControllerStatusComponent implements OnInit, DroneMapWidget {
       this.drawCanvas();
     } else {
       switch(this.globals.file.productType) {
-        case 17:
+        case DroneType.Inspire_2:
           this.pitchMaxVal = 32727;
           this.rollMaxVal = 16256;
           this.yawMaxVal = 32727;
           this.thrMaxVal = 16256;
           break;
-        case 27:
+        case DroneType.Phantom_4_Advanced:
+        case DroneType.Matrice_600:
         default:
           this.pitchMaxVal = 10000;
           this.rollMaxVal = 10000;

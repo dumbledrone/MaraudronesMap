@@ -10,7 +10,7 @@ The interface enforces the implementation of three functions, which are called o
 * `update`: the current message has been changed
 
 # extending the application
-New drone types can be added by specifying them within `getProductNameString` of `FlightInfoComponent`.\
+New drone types can be added by specifying them as a member of the `DroneType` enum of `globals.py` and within `getProductNameString` of `FlightInfoComponent`.\
 If the new drone type has controller data that is not within (-10000,10000) it should additionally be adjusted in `fileChanged` of `ControllerStatusComponent`.
 
 Adding new DUML Message types (after implementing them within the DROP application) involves adding their definition within `DroneWebGuiDatabase` and defining their saving and loading within `Globals`.

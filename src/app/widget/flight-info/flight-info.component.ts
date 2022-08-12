@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import {DroneMapWidget, Globals} from "../../global";
+import {DroneMapWidget, DroneType, Globals} from "../../global";
 
 @Component({
   selector: 'app-flight-info',
@@ -54,9 +54,11 @@ export class FlightInfoComponent implements OnInit, DroneMapWidget {
     switch(productType) {
       case -1:
         return "-";
-      case 17:
+      case DroneType.Inspire_2:
         return "Inspire 2 - only partial support, data might be invalid";
-      case 27:
+      case DroneType.Matrice_600:
+        return "Matrice 600 - only partial support, data might be invalid";
+      case DroneType.Phantom_4_Advanced:
         return "Phantom 4 Advanced";
       default:
         console.log("unknown device type: " + productType);

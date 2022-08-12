@@ -596,4 +596,9 @@ export enum LineType {
   speed
 }
 
+export enum DroneType {
+  Inspire_2 = 17,
+  Matrice_600 = 23,
+  Phantom_4_Advanced = 27
+}
 
