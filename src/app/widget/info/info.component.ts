@@ -68,6 +68,9 @@ export class InfoComponent implements OnInit, DroneMapWidget {
     if(batMes) {
       this.batteryPercentage = batMes.cap_per;
       this.batteryTemp = batMes.temp;
+      if(batMes.temp > 100) {
+        this.batteryTemp = batMes.temp / 10;
+      }
     }
     if(usMes) {
       this.uSonic_height = usMes.usonic_h;
