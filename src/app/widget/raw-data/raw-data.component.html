@@ -1,6 +1,6 @@
 <b>Raw Data:</b><br/>
 <select [(ngModel)]="showedMessageType" (change)="selectUpdated()">
-  <option value="latest" title="If time is set to Seconds, this always displays a GPS message!">latest message</option>
+  <option value="latest" title="If time is set to Seconds, this always displays a GPS message!">Latest message</option>
   <option value="gps" style="cursor: help;">GPS</option>
   <option value="control">Controller</option>
   <option value="uSonic">Ultrasonic</option>
@@ -14,10 +14,10 @@
 </select><br/>
 <div>
   <section>
-    <span>message type: {{messageType}}</span><br/>
-    <span>message number: {{messageNumber}}</span><br/>
+    <span>Message type: {{messageType}}</span><br/>
+    <span>Message number: {{messageNumber}}</span><br/>
     <span>.dat file offset: {{datFileOffset}}</span><br/>
-    <span *ngIf="pktId===2096">flight second: {{second}}</span>
+    <span *ngIf="pktId===2096">Flight second: {{second}}</span>
   </section>
   <hr>
   <section id="dataSection"></section>

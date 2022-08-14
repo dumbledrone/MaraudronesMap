@@ -20,7 +20,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
 
   constructor(public globals: Globals) {
     this.globals.subscribe(this);
-    this._errors = [{text:"no file selected", mesNum:-1, severity:Severity.severe, headline: true}];
+    this._errors = [{text:"No file selected", mesNum:-1, severity:Severity.severe, headline: true}];
   }
 
   ngOnInit(): void {
@@ -33,7 +33,7 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
 
   fileChanged(): void {
     if (this.globals.file === null) {
-      this._errors = [{text:"no file selected", mesNum:-1, severity:Severity.severe, headline: true}];
+      this._errors = [{text:"No file selected", mesNum:-1, severity:Severity.severe, headline: true}];
       return;
     }
     this._errors = this.globals.file.errors;
@@ -69,7 +69,7 @@ export class AnomalyAnalyzer {
   }
 
   async checkFlight(cb: any) {
-    console.log("anomaly check startet at " + new Date())
+    console.log("Anomaly check startet at " + new Date())
     this.prepareOrientations();
     document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Analyzing anomalies: Checking Ticks"}}));
     await new Promise<void>(done => setTimeout(() => {this.checkTicks(); done();}, 500));
@@ -101,7 +101,7 @@ export class AnomalyAnalyzer {
       this._errors.push({text:"No severe anomalies detected.", mesNum:-1, severity: Severity.severe, headline: true})
     else if (this.globals.anomalyLevel == Severity.medium && !sevSev && !sevMed)
       this._errors.push({text:"No medium or severe anomalies detected.", mesNum:-1, severity: Severity.severe, headline: true})
-    console.log("anomaly check finished at " + new Date());
+    console.log("Anomaly check finished at " + new Date());
     cb(this._errors);
   }
 
@@ -120,17 +120,17 @@ export class AnomalyAnalyzer {
       if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 100)) {
         if (this._orientations[i].mesNum == 0)
           continue;
-        this._errors.push({text:"orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.severe, headline: false});
+        this._errors.push({text:"Orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.severe, headline: false});
         errSev = true;
       } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 50)) {
         if (this._orientations[i].mesNum == 0)
           continue;
-        this._errors.push({text:"orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.medium, headline: false});
+        this._errors.push({text:"Orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.medium, headline: false});
         errMed = true;
       } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 15)) {
         if (this._orientations[i].mesNum == 0)
           continue;
-        this._errors.push({text:"orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.minor, headline: false});
+        this._errors.push({text:"Orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.minor, headline: false});
         errMin = true;
       }
     }
@@ -152,7 +152,7 @@ export class AnomalyAnalyzer {
     } else if (x1 > (360-degrees_until_jump) && x1 <= 360) {
       return (x2 >= x1 - degrees_until_jump && x2 <= x1) || (x2 > 0 && x2 <= (x1 + degrees_until_jump - 360)) || (x2 > x1 && x2 <= 360);
     } else
-      console.log("error - anomaly.component.ts - checkOrientationPair: this should not be reachable.")
+      console.log("Error - anomaly.component.ts - checkOrientationPair: this should not be reachable.")
     return false
   }
 
@@ -264,7 +264,7 @@ export class AnomalyAnalyzer {
         } else {
           sevLevel = Severity.severe;
         }
-        this._errors.push({text:"tick " + this._ctrlMes[i].ctrl_tick + '\t - tick ' + this._ctrlMes[i+1].ctrl_tick, mesNum:this._ctrlMes[i].messageNum, severity:severity, headline:false});
+        this._errors.push({text:"Tick " + this._ctrlMes[i].ctrl_tick + '\t - tick ' + this._ctrlMes[i+1].ctrl_tick, mesNum:this._ctrlMes[i].messageNum, severity:severity, headline:false});
         tickError = true;
       }
     }
@@ -298,7 +298,7 @@ export class AnomalyAnalyzer {
           firstJump = false;
           continue;
         }
-        this._errors.push({text:"time " + time + '\t - time ' + timeI2, mesNum:this._gpsMes[i].messageNum, severity:severityGaps, headline: false});
+        this._errors.push({text:"Time " + time + '\t - time ' + timeI2, mesNum:this._gpsMes[i].messageNum, severity:severityGaps, headline: false});
         timeError = true;
       }
     }
@@ -315,10 +315,10 @@ export class AnomalyAnalyzer {
     let sev6used: boolean = false;
     timesPerSecond.forEach((second, ind)=>{
       if(second.times < 4 && second.times !== 0) {
-        this._errors.push({text:"time stamp "+ind + " occurred "+ second.times + " times", mesNum:second.firstMesNum, severity: severity4, headline: false});
+        this._errors.push({text:"Time stamp "+ind + " occurred "+ second.times + " times", mesNum:second.firstMesNum, severity: severity4, headline: false});
         sev4used = true;
       } else if (second.times > 6 && second.times !== 0) {
-        this._errors.push({text:"time stamp "+ind + " occurred "+ second.times + " times", mesNum:second.firstMesNum, severity: severity6, headline: false});
+        this._errors.push({text:"Time stamp "+ind + " occurred "+ second.times + " times", mesNum:second.firstMesNum, severity: severity6, headline: false});
         sev6used = true;
       }
     })
