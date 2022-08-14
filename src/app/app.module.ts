@@ -25,6 +25,7 @@ import {MatProgressSpinnerModule} from "@angular/material/progress-spinner";
 import { DiagramComponent } from './widget/diagram/diagram.component';
 import { RawDataComponent } from './widget/raw-data/raw-data.component';
 import { FlightInfoComponent } from './widget/flight-info/flight-info.component';
+import { FlightlogComponent } from './widget/flightlog/flightlog.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { FlightInfoComponent } from './widget/flight-info/flight-info.component'
     AnomalyComponent,
     DiagramComponent,
     RawDataComponent,
-    FlightInfoComponent
+    FlightInfoComponent,
+    FlightlogComponent
   ],
   imports: [
     BrowserModule,

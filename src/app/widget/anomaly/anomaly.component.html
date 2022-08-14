@@ -5,7 +5,7 @@
       <span class="text" [class.low]="i.severity === severityVar.minor" [class.medium]="i.severity === severityVar.medium"
             [class.high]="i.severity === severityVar.severe" [class.headline]="i.headline">{{i.text}}</span>
       <ng-container *ngIf="i.mesNum != -1">
-        <span class="mesNum" (click)="sendMesNumEvent(i.mesNum)" onmouseover="style='text-decoration:underline'" onmouseout="style='text-decoration:none'">{{i.mesNum}}</span>
+        <span class="mesNum" (click)="sendMesNumEvent(i.mesNum)">{{i.mesNum}}</span>
       </ng-container>
     </ng-container>
   </ng-container>

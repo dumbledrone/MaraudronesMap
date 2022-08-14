@@ -3,7 +3,7 @@ import {MatDialog, MatDialogConfig} from "@angular/material/dialog";
 import {AppearenceDialogueComponent} from "./helpers/appearence-dialogue/appearence-dialogue.component";
 import {Globals} from "./global";
 
-const NUMBER_OF_WIDGETS = 6;
+const NUMBER_OF_WIDGETS = 7;
 
 @Component({
   selector: 'app-root',
@@ -77,6 +77,8 @@ export class AppComponent implements OnInit {
     document.getElementById("infos4")?.style.display = this._localStorageValues[4] ? "block" : "none";
     //@ts-ignore
     document.getElementById("infos5")?.style.display = this._localStorageValues[5] ? "block" : "none";
+    //@ts-ignore
+    document.getElementById("infos6")?.style.display = this._localStorageValues[6] ? "block" : "none";
     let tmp = localStorage.getItem("mapView");
     this.mapType = tmp===null? 1 : parseInt(tmp);
     tmp = localStorage.getItem("lineColor");

@@ -16,6 +16,11 @@ export class DroneWebGuiDatabase extends Dexie {
   escData: Dexie.Table<EscDataDbMessage, number>;
   motorCtrl: Dexie.Table<MotorCtrlDbMessage, number>;
   osdHome: Dexie.Table<OsdHomeDbMessage, number>;
+  flyLog: Dexie.Table<LogDbMessage, number>;
+  sdLog: Dexie.Table<LogDbMessage, number>;
+  moduleNameLog: Dexie.Table<LogDbMessage, number>;
+  recDefsLog: Dexie.Table<LogDbMessage, number>;
+  sysConfigLog: Dexie.Table<LogDbMessage, number>;
 
   constructor () {
     super("DroneWebGuiDatabase");
@@ -32,6 +37,11 @@ export class DroneWebGuiDatabase extends Dexie {
       escData: '++id, fileId, [fileId+messageNum]',
       motorCtrl: '++id, fileId, [fileId+messageNum]',
       osdHome: '++id, fileId, [fileId+messageNum]',
+      flyLog: '++id, fileId, [fileId+messageNum]',
+      sdLog: '++id, fileId, [fileId+messageNum]',
+      moduleNameLog: '++id, fileId, [fileId+messageNum]',
+      recDefsLog: '++id, fileId, [fileId+messageNum]',
+      sysConfigLog: '++id, fileId, [fileId+messageNum]',
     });
     // The following line is needed if your typescript
     // is compiled using babel instead of tsc:
@@ -59,6 +69,16 @@ export class DroneWebGuiDatabase extends Dexie {
     this.motorCtrl.mapToClass(MotorCtrlDbMessage);
     this.osdHome = this.table("osdHome");
     this.osdHome.mapToClass(OsdHomeDbMessage);
+    this.flyLog = this.table("flyLog");
+    this.flyLog.mapToClass(LogDbMessage);
+    this.sdLog = this.table("sdLog");
+    this.sdLog.mapToClass(LogDbMessage);
+    this.moduleNameLog = this.table("moduleNameLog");
+    this.moduleNameLog.mapToClass(LogDbMessage);
+    this.recDefsLog = this.table("recDefsLog");
+    this.recDefsLog.mapToClass(LogDbMessage);
+    this.sysConfigLog = this.table("sysConfigLog");
+    this.sysConfigLog.mapToClass(LogDbMessage);
   }
 
   public getDatabaseForPackageId(key: string): Table | null {
@@ -85,6 +105,16 @@ export class DroneWebGuiDatabase extends Dexie {
         return this.recMag;
       case "10090":
         return this.escData;
+      case "32768":
+        return this.flyLog;
+      case "65280":
+        return this.sdLog;
+      case "65532":
+        return this.moduleNameLog;
+      case "65533":
+        return this.recDefsLog;
+      case "65535":
+        return this.sysConfigLog;
     }
     return null;
   }
@@ -118,7 +148,12 @@ export class DroneWebGuiDatabase extends Dexie {
           'rfPPM_recv', 'rfV_out', 'rfPPM_send', 'lfStatus', 'lfCurrent', 'lfSpeed', 'lfVolts', 'lfTemp', 'lfPPM_recv',
           'lfV_out', 'lfPPM_send', 'lbStatus', 'lbCurrent', 'lbSpeed', 'lbVolts', 'lbTemp', 'lbPPM_recv', 'lbV_out',
           'lbPPM_send', 'rbStatus', 'rbCurrent', 'rbSpeed', 'rbVolts', 'rbTemp', 'rbPPM_recv', 'rbV_out', 'rbPPM_send']},
-      {key: "1307", database: this.motorCtrl, attrs: ['pwm1','pwm2','pwm3','pwm4','pwm5','pwm6','pwm7','pwm8']}
+      {key: "1307", database: this.motorCtrl, attrs: ['pwm1','pwm2','pwm3','pwm4','pwm5','pwm6','pwm7','pwm8']},
+      {key: "32768", database: this.flyLog, attrs: ['text']},
+      {key: "65280", database: this.sdLog, attrs: ['text']},
+      {key: "65532", database: this.moduleNameLog, attrs: ['text']},
+      {key: "65533", database: this.recDefsLog, attrs: ['text']},
+      {key: "65535", database: this.sysConfigLog, attrs: ['text']}
     ];
   }
 }
@@ -678,5 +713,14 @@ export class OsdHomeDbMessage extends DbMessage {
     this.osd_home_state = osd_home_state;
     this.fixed_altitude = fixed_altitude;
     this.course_lock_torsion = course_lock_torsion;
+  }
+}
+
+export class LogDbMessage extends DbMessage {
+  text: string;
+
+  constructor(id: number, fileId: number, messageNum: number, offset: number, text: string) {
+    super(id, fileId, messageNum, offset);
+    this.text = text;
   }
 }

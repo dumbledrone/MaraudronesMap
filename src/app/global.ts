@@ -13,7 +13,8 @@ import {
   OsdHomeDbMessage,
   RcDebugInfoDbMessage,
   RecMagDbMessage,
-  UltrasonicDbMessage
+  UltrasonicDbMessage,
+  LogDbMessage
 } from "./helpers/DroneWebGuiDatabase";
 import Dexie from "dexie";
 import Table = Dexie.Table;
@@ -45,6 +46,8 @@ export class Globals {
   private _motorCtrlMessage: MotorCtrlDbMessage | undefined;
   private _rcDebugMessage: RcDebugInfoDbMessage | undefined;
   private _osdHomeMessage: OsdHomeDbMessage | undefined;
+  private _flylogMessage: LogDbMessage | undefined;
+  private _sdLogMessage: LogDbMessage | undefined;
   private _lineType: LineType = LineType.none;
   private _anomalyLevel!: number;
   private _latestMessage: DbMessage | undefined;
@@ -159,6 +162,18 @@ export class Globals {
 
   public get osdHomeMessage(): OsdHomeDbMessage | undefined {
     return this._osdHomeMessage;
+  }
+
+  set flyLogMessage(flyLogMessage: LogDbMessage | undefined) {}
+
+  public get flyLogMessage(): LogDbMessage | undefined {
+    return this._flylogMessage;
+  }
+
+  set sdLogMessage(sdLogMessage: LogDbMessage | undefined) {}
+
+  public get sdLogMessage(): LogDbMessage | undefined {
+    return this._sdLogMessage;
   }
 
   set file(file: DbFile | null) {}
@@ -341,6 +356,8 @@ export class Globals {
       this._escDataMessage = undefined;
       this._motorCtrlMessage = undefined;
       this._osdHomeMessage = undefined;
+      this._flylogMessage = undefined;
+      this._sdLogMessage = undefined;
       this.fileChanged();
       return;
     }
@@ -471,6 +488,24 @@ export class Globals {
       this._osdHomeMessage = res.slice(-1).pop();
       if(this._osdHomeMessage?.messageNum === messageId)
         this._latestMessage = this._osdHomeMessage;
+      onComplete();
+    });
+    ct++;
+    this.dexieDbService.flyLog.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 1000], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._flylogMessage = res.slice(-1).pop();
+      if(this._flylogMessage?.messageNum === messageId)
+        this._latestMessage = this._flylogMessage;
+      onComplete();
+    });
+    ct++;
+    this.dexieDbService.sdLog.where('[fileId+messageNum]')
+      .between([this._dbFile.id, messageId - 1000], [this._dbFile.id, messageId], true, true)
+      .toArray().then(res => {
+      this._sdLogMessage = res.slice(-1).pop();
+      if(this._sdLogMessage?.messageNum === messageId)
+        this._latestMessage = this._sdLogMessage;
       onComplete();
     });
   }
