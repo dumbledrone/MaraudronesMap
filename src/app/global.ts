@@ -49,6 +49,8 @@ export class Globals {
   private _anomalyLevel!: number;
   private _latestMessage: DbMessage | undefined;
 
+  private static CHUNK_SIZE = 100000;
+
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
     this._dbFiles = [];
     this._anomalyLevel = 0;
@@ -175,107 +177,152 @@ export class Globals {
   processFile(): void {
     this._flightDuration = 10;
     let inst = this;
+    if (inst._file === null)
+      return;
+
+    let jsonText = "";
+    let chunk = 0;
+    let maxChunk = Math.ceil(inst._file.size / Globals.CHUNK_SIZE);
+    let data: any[] = [];
 
     let jsonFileReader = new FileReader();
+    jsonFileReader.onerror = function (event) {throw event;};
     jsonFileReader.onload = async function () {// refactor to not load whole data into RAM?
-      if (inst._file === null)
+      if(jsonFileReader.result == "") {
+        window.alert("JSON input could not be parsed.\nPlease try rerunning DROP.")
         return;
-      inst.loadCallback();
-      document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Importing file: " + inst._file.name}}));
-      let data = JSON.parse(<string>jsonFileReader.result);
-      data = data.sort((a: any, b: any) => a.offset < b.offset);
-      if(data[0].offset > data[1].offset)
-        data.reverse();
-      let usonicInd = data.indexOf(data.find((d: any) => d.pktId === 16 && d.usonic_h > 110));
-      let usonicTime = data.find((d: any, ind: number) => d.pktId === 2096 && ind > usonicInd).time;
-      let productType = data.find((d: any) => d.pktId === 12).product_type;
-      let gpsData = data.filter((d: any) => d.pktId === 2096);
-      let firstGPSMes = gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0);
-      let gpsOffset = data.indexOf(firstGPSMes);
-      let gpsDataOffset = gpsData.indexOf(firstGPSMes);
-      if(gpsDataOffset < 0)
-        gpsDataOffset = 0;
-      if(gpsOffset < 0)
-        gpsOffset = 0;
-      gpsData.forEach((g: any) => g.distance = 0);
-      let timeSeconds = timeStringToSecs(gpsData[gpsDataOffset].time);
-      let time = "";
-      if(timeSeconds > 3600) {
-        time += Math.floor(timeSeconds/3600) + ":";
       }
-      let mins = Math.floor((timeSeconds % 3600)/60);
-      time += mins < 10 ? "0" + mins : mins;
-      time += ":";
-      let secs = Math.floor(timeSeconds%60);
-      time += secs < 10 ? "0" + secs : secs;
-      let dateString = gpsData[gpsDataOffset+1].date.toString();
-      let date = new Date();
-      date.setFullYear(parseInt(dateString.substr(0, 4)),
-        parseInt(dateString.substr(4,2)),
-        parseInt(dateString.substr(6, 2)));
-      let altitude = 0;
-      if (gpsData[gpsDataOffset]) {
-        altitude = gpsData[gpsDataOffset].altitude;
-        let distance = 0;
-        for (let i = gpsDataOffset; i+1 < gpsData.length; i++) {
-          let d1 = gpsData[i], d2 = gpsData[i+1];
-          distance += coordinatesToM(d1.latitude, d1.longitude, d2.latitude, d2.longitude);
-          d2.distance = distance;
-        }
-      }
-      let latCol = gpsData.map((a: any) => a.latitude);
-      latCol = latCol.filter((l: number) => l !== 0);
-      let longCol = gpsData.map((a: any) => a.longitude);
-      longCol = longCol.filter((l: number) => l !== 0);
-      let timeCol: number[] = Array.from(new Set(gpsData.map((a: any) => timeStringToSecs(a.time))));
-      let flightTime = timeCol.length;
-      for(let i = 0; i < timeCol.length; i++) {
-        if(timeCol[i] + 1 < timeCol[i+1]) {
-          timeCol = timeCol.slice(i + 1);
-          break;
-        }
-      }
-      let seconds = timeCol.length;
-      let timeOffset = flightTime - seconds;
-      let searchOffset = gpsDataOffset-1;
-      if(searchOffset < 0)
-        searchOffset = 0;
-      let timeUntilGPS = timeStringToSecs(gpsData[searchOffset].time) - timeCol[0] + timeOffset;
-      let timeUntilTakeOff = timeStringToSecs(usonicTime) - timeCol[0] + timeOffset;
-      console.log(new Date());
-      let minLat = Math.min(...latCol);
-      let maxLat = Math.max(...latCol);
-      let minLong = Math.min(...longCol);
-      let matLong = Math.max(...longCol);
-      inst.dexieDbService.files.add({
-        fileName: inst._file.name,
-        messageCount: data.length,
-        fileDuration: flightTime,
-        flightDuration: seconds,
-        startTime: timeCol[0],
-        minLatitude: !isFinite(minLat) ? 49.57384629202841 : minLat,
-        maxLatitude: !isFinite(maxLat) ? 49.57384629202841 : maxLat,
-        minLongitude: !isFinite(minLong) ? 11.02728355453469 : minLong,
-        maxLongitude: !isFinite(matLong) ? 11.02728355453469 : matLong,
-        altitude: altitude,
-        gpsOffset: gpsOffset,
-        timeOffset: timeOffset,
-        timeUntilGPS: timeUntilGPS,
-        timeUntilTakeOff: timeUntilTakeOff,
-        flightDate: date.toDateString(),
-        flightStartTime: time,
-        track: [],
-        errors: [],
-        productType: productType
-      }).then((res: number) => {
-        inst.handleDataArray(res, data);
-        inst._file = null;
-        console.log('created file id: ' + res);
-      });
+      let buffer = new Uint8Array(<ArrayBuffer>jsonFileReader.result);
+      jsonText += new TextDecoder('utf-8').decode(buffer);
 
+      if(chunk == 0) {
+        jsonText = jsonText.substr(1);
+      }
+
+      let jsonData = jsonText.split("},").map(j => j + "}");
+      if(chunk == maxChunk - 1) {
+        jsonData[jsonData.length-1] = jsonData[jsonData.length - 1].substr(0, jsonData[jsonData.length - 1].length - 2);
+      }
+
+      for (let i = 0; i < jsonData.length - 1; i++) {// read all entries, except the last, as this might not be completely available
+        data.push(JSON.parse(jsonData[i]));
+      }
+      jsonText = jsonData[jsonData.length - 1];
+      jsonText = jsonText.substr(0, jsonText.length - 1);
+      if(chunk < maxChunk  - 1) {
+        chunk++;
+        inst.loadFileChunk(jsonFileReader, chunk);
+      } else {
+        data.push(JSON.parse(jsonData[jsonData.length - 1]));
+        inst.importData(data);
+      }
     }
+    inst.loadCallback();
+    document.dispatchEvent(new CustomEvent("spinnerInfoMessage", {detail: {text: "Importing file: " + inst._file.name}}));
+    inst.loadFileChunk(jsonFileReader, chunk);
+  }
+
+  private loadFileChunk(fr: FileReader, chunk: number) {
+    if(this._file === null)
+      return;
+    let slice = this._file.slice(chunk * Globals.CHUNK_SIZE, (chunk+1) * Globals.CHUNK_SIZE);
+    fr.readAsArrayBuffer(slice);
+  }
+
+  private importData(data: any[]) {
+    let inst = this;
+    if (inst._file === null)
+      return;
     // @ts-ignore
-    jsonFileReader.readAsText(this._file);
+    data = data.sort((a: any, b: any) => a.offset < b.offset);
+    if(data[0].offset > data[1].offset)
+      data.reverse();
+    let usonicInd = data.indexOf(data.find((d: any) => d.pktId === 16 && d.usonic_h > 110));
+    let usonicTime = data.find((d: any, ind: number) => d.pktId === 2096 && ind > usonicInd).time;
+    let productType = data.find((d: any) => d.pktId === 12).product_type;
+    let gpsData = data.filter((d: any) => d.pktId === 2096);
+    let firstGPSMes = gpsData.find((g: any) => g.latitude !== 0 && g.longitude !== 0);
+    let gpsOffset = data.indexOf(firstGPSMes);
+    let gpsDataOffset = gpsData.indexOf(firstGPSMes);
+    if(gpsDataOffset < 0)
+      gpsDataOffset = 0;
+    if(gpsOffset < 0)
+      gpsOffset = 0;
+    gpsData.forEach((g: any) => g.distance = 0);
+    let timeSeconds = timeStringToSecs(gpsData[gpsDataOffset].time);
+    let time = "";
+    if(timeSeconds > 3600) {
+      time += Math.floor(timeSeconds/3600) + ":";
+    }
+    let mins = Math.floor((timeSeconds % 3600)/60);
+    time += mins < 10 ? "0" + mins : mins;
+    time += ":";
+    let secs = Math.floor(timeSeconds%60);
+    time += secs < 10 ? "0" + secs : secs;
+    let dateString = gpsData[gpsDataOffset+1].date.toString();
+    let date = new Date();
+    date.setFullYear(parseInt(dateString.substr(0, 4)),
+      parseInt(dateString.substr(4,2)),
+      parseInt(dateString.substr(6, 2)));
+    let altitude = 0;
+    if (gpsData[gpsDataOffset]) {
+      altitude = gpsData[gpsDataOffset].altitude;
+      let distance = 0;
+      for (let i = gpsDataOffset; i+1 < gpsData.length; i++) {
+        let d1 = gpsData[i], d2 = gpsData[i+1];
+        distance += coordinatesToM(d1.latitude, d1.longitude, d2.latitude, d2.longitude);
+        d2.distance = distance;
+      }
+    }
+    let latCol = gpsData.map((a: any) => a.latitude);
+    latCol = latCol.filter((l: number) => l !== 0);
+    let longCol = gpsData.map((a: any) => a.longitude);
+    longCol = longCol.filter((l: number) => l !== 0);
+    let timeCol: number[] = Array.from(new Set(gpsData.map((a: any) => timeStringToSecs(a.time))));
+    let flightTime = timeCol.length;
+    for(let i = 0; i < timeCol.length; i++) {
+      if(timeCol[i] + 1 < timeCol[i+1]) {
+        timeCol = timeCol.slice(i + 1);
+        break;
+      }
+    }
+    let seconds = timeCol.length;
+    let timeOffset = flightTime - seconds;
+    let searchOffset = gpsDataOffset-1;
+    if(searchOffset < 0)
+      searchOffset = 0;
+    let timeUntilGPS = timeStringToSecs(gpsData[searchOffset].time) - timeCol[0] + timeOffset;
+    let timeUntilTakeOff = timeStringToSecs(usonicTime) - timeCol[0] + timeOffset;
+    console.log(new Date());
+    let minLat = Math.min(...latCol);
+    let maxLat = Math.max(...latCol);
+    let minLong = Math.min(...longCol);
+    let matLong = Math.max(...longCol);
+    inst.dexieDbService.files.add({
+      fileName: inst._file.name,
+      messageCount: data.length,
+      fileDuration: flightTime,
+      flightDuration: seconds,
+      startTime: timeCol[0],
+      minLatitude: !isFinite(minLat) ? 49.57384629202841 : minLat,
+      maxLatitude: !isFinite(maxLat) ? 49.57384629202841 : maxLat,
+      minLongitude: !isFinite(minLong) ? 11.02728355453469 : minLong,
+      maxLongitude: !isFinite(matLong) ? 11.02728355453469 : matLong,
+      altitude: altitude,
+      gpsOffset: gpsOffset,
+      timeOffset: timeOffset,
+      timeUntilGPS: timeUntilGPS,
+      timeUntilTakeOff: timeUntilTakeOff,
+      flightDate: date.toDateString(),
+      flightStartTime: time,
+      track: [],
+      errors: [],
+      productType: productType
+    }).then((res: number) => {
+      inst.handleDataArray(res, data);
+      inst._file = null;
+      console.log('created file id: ' + res);
+    });
   }
 
   public selectFile(fileId: number) {
