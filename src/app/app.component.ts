@@ -93,7 +93,11 @@ export class AppComponent implements OnInit {
     let i = 0;
     for (;i < NUMBER_OF_WIDGETS; i++) {     //#checkboxNumber i < number of checkboxes
       let tmp = localStorage.getItem("checkbox" + i);
-      this._localStorageValues[i] = tmp === null ? true : tmp === "true";
+      if(i === 6) {
+        this._localStorageValues[i] = tmp === null ? false : tmp === "true";
+      } else {
+        this._localStorageValues[i] = tmp === null ? true : tmp === "true";
+      }
     }
     let tmp = localStorage.getItem("mapView");
     this.mapType = tmp===null? 1 : parseInt(tmp);

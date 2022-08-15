@@ -1,6 +1,6 @@
 <p><b>Flight log entries:</b></p>
 <div id="flightLogDiv">
   <ng-container *ngFor="let logEntry of logEntries">
-    <span class="mesNum" (click)="sendMesNumEvent(logEntry.messageNum)" onmouseover="style='text-decoration:underline'" onmouseout="style='text-decoration:none'">{{logEntry.messageNum}}</span>: <span>{{logEntry.text}}</span><br/>
+    <span class="mesNum" (click)="sendMesNumEvent(logEntry.messageNum)" onmouseover="style='text-decoration:underline'" onmouseout="style='text-decoration:none'">{{logEntry.messageNum}}</span>: [{{getLogEntryType(logEntry)}}] <span>{{logEntry.text}}</span><br/>
   </ng-container>
 </div>
