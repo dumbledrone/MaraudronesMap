@@ -56,7 +56,7 @@ export class Globals {
 
   private constructor(private dexieDbService: DroneWebGuiDatabase) {
     this._dbFiles = [];
-    this._anomalyLevel = 0;
+    this._anomalyLevel = 1;
     this.loadDbFiles();
   }
 
@@ -245,6 +245,7 @@ export class Globals {
   }
 
   private importData(data: any[]) {
+    let dataEntryCount = data.length;
     let inst = this;
     if (inst._file === null)
       return;
@@ -252,7 +253,7 @@ export class Globals {
     data = data.sort((a: any, b: any) => a.offset < b.offset);
     if(data[0].offset > data[1].offset)
       data.reverse();
-    let usonicInd = data.indexOf(data.find((d: any) => d.pktId === 16 && d.usonic_h > 110));
+    let usonicInd = data.indexOf(data.find((d: any) => d.pktId === 16 && d.usonic_h > (data.find((dt: any) => dt.pktId === 16).usonic_h * 1.1)));
     let usonicTime = data.find((d: any, ind: number) => d.pktId === 2096 && ind > usonicInd).time;
     let productType = data.find((d: any) => d.pktId === 12).product_type;
     let gpsData = data.filter((d: any) => d.pktId === 2096);
@@ -306,8 +307,9 @@ export class Globals {
     let searchOffset = gpsDataOffset-1;
     if(searchOffset < 0)
       searchOffset = 0;
-    let timeUntilGPS = timeStringToSecs(gpsData[searchOffset].time) - timeCol[0] + timeOffset;
+    let timeUntilGPS = timeStringToSecs(gpsData.find((g, i) => i >= searchOffset && g.date > 0).time) - timeCol[0] + timeOffset;
     let timeUntilTakeOff = timeStringToSecs(usonicTime) - timeCol[0] + timeOffset;
+    console.log("number of overall log entries: " + dataEntryCount + " -> " + dataEntryCount/flightTime + " messages/sec");
     console.log(new Date());
     let minLat = Math.min(...latCol);
     let maxLat = Math.max(...latCol);
@@ -393,7 +395,7 @@ export class Globals {
 
     ct++;
     this.dexieDbService.gps.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 1000], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._gpsMessage = res.slice(-1).pop();
       if(this._gpsMessage?.messageNum === messageId)
@@ -402,7 +404,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.battery.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._batteryMessage = res.slice(-1).pop();
       if(this._batteryMessage?.messageNum === messageId)
@@ -411,7 +413,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.controller.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._controllerMessage = res.slice(-1).pop();
       if(this._controllerMessage?.messageNum === messageId)
@@ -420,7 +422,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.ultrasonic.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._uSonicMessage = res.slice(-1).pop();
       if(this._uSonicMessage?.messageNum === messageId)
@@ -429,7 +431,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.osdGeneral.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._osdGeneralMessage = res.slice(-1).pop();
       if(this._osdGeneralMessage?.messageNum === messageId)
@@ -438,7 +440,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.imuAtti.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._imuAttiMessage = res.slice(-1).pop();
       if(this._imuAttiMessage?.messageNum === messageId)
@@ -447,7 +449,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.recMag.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._recMagMessage = res.slice(-1).pop();
       if(this._recMagMessage?.messageNum === messageId)
@@ -456,7 +458,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.escData.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._escDataMessage = res.slice(-1).pop();
       if(this._escDataMessage?.messageNum === messageId)
@@ -465,7 +467,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.motorCtrl.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._motorCtrlMessage = res.slice(-1).pop();
       if(this._motorCtrlMessage?.messageNum === messageId)
@@ -474,7 +476,7 @@ export class Globals {
     });
     ct++;
     this.dexieDbService.rcDebug.where('[fileId+messageNum]')
-      .between([this._dbFile.id, messageId - 100], [this._dbFile.id, messageId], true, true)
+      .between([this._dbFile.id, messageId - 500], [this._dbFile.id, messageId], true, true)
       .toArray().then(res => {
       this._rcDebugMessage = res.slice(-1).pop();
       if(this._rcDebugMessage?.messageNum === messageId)
@@ -586,11 +588,23 @@ export class Globals {
         inst.updated();
         inst.loadDbFiles();
         inst.finishLoadingCallback();
+      } else if (ct % 4 == 0) {
+        deleteNextType();
       }
+    }
+    function deleteNextType() {
+      console.log("[" + new Date() + "] deleting " + ct+1 + "-" + ct+4 + " of " + tables.length)
+      tables[ct].database.where('fileId').equals(inst._fileId).delete().then(() => complete());
+      if(ct+1 < tables.length)
+        tables[ct+1].database.where('fileId').equals(inst._fileId).delete().then(() => complete());
+      if(ct+2 < tables.length)
+        tables[ct+2].database.where('fileId').equals(inst._fileId).delete().then(() => complete());
+      if(ct+3 < tables.length)
+        tables[ct+3].database.where('fileId').equals(inst._fileId).delete().then(() => complete());
     }
     inst.loadCallback();
     this.dexieDbService.files.delete(this._fileId).then();
-    tables.forEach(t => t.database.where('fileId').equals(this._fileId).delete().then(() => complete()));
+    deleteNextType();
   }
 
   private createTrack() {

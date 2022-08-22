@@ -84,7 +84,7 @@ export class AppComponent implements OnInit {
     tmp = localStorage.getItem("lineColor");
     this.globals.lineType = tmp===null? 0 : parseInt(tmp);
     tmp = localStorage.getItem("anomalyLevel");
-    this.globals.anomalyLevel = tmp===null? 0 : parseInt(tmp);
+    this.globals.anomalyLevel = tmp===null? 1 : parseInt(tmp);
     //@ts-ignore
     document.getElementById("infos2")?.style.display = this.globals.anomalyLevel === -1 ? "none" : "block";
   }
@@ -112,10 +112,10 @@ export class AppComponent implements OnInit {
       localStorage.setItem("lineColor", String(0));
     }
     tmp = localStorage.getItem("anomalyLevel");
-    this.globals.anomalyLevel = tmp===null? 0 : parseInt(tmp);
+    this.globals.anomalyLevel = tmp===null? 1 : parseInt(tmp);
     if(isNaN(this.globals.anomalyLevel)) {
-      this.globals.anomalyLevel = 0;
-      localStorage.setItem("anomalyLevel", String(0));
+      this.globals.anomalyLevel = 1;
+      localStorage.setItem("anomalyLevel", String(1));
     }
   }
 
