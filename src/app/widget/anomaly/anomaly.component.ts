@@ -4,8 +4,8 @@ import {
   BatteryDbMessage,
   ControllerDbMessage,
   DroneWebGuiDatabase,
-  GpsDbMessage, ImuAttiDbMessage, MotorCtrlDbMessage,
-  OsdGeneralDataDbMessage, RecMagDbMessage
+  GpsDbMessage, MotorCtrlDbMessage,
+  RecMagDbMessage
 } from "../../helpers/DroneWebGuiDatabase";
 import {getOrientationFromRecMagMessage} from "../../helpers/functions";
 
@@ -51,6 +51,12 @@ export class AnomalyComponent implements OnInit, DroneMapWidget {
 }
 
 export class AnomalyAnalyzer {
+  readonly BatteryPercentageJumpMedium = 1;
+  readonly BatteryPercentageJumpSevere = 5;
+  readonly OrientationJumpMinor = 15;
+  readonly OrientationJumpMedium = 50;
+  readonly OrientationJumpSevere = 100;
+
   private _errors: error[];
   private _gpsMes: GpsDbMessage[];
   private _ctrlMes: ControllerDbMessage[];
@@ -115,19 +121,19 @@ export class AnomalyAnalyzer {
   checkOrientationChange() {
     let errSev, errMed, errMin = false;
     this._errors.push({text:"Change of orientation too big:", mesNum:-1, severity:Severity.severe, headline: true});
-    let indHealine = this._errors.length - 1;
+    let indHeadline = this._errors.length - 1;
     for (let i = 0; i < this._orientations.length - 1; i++) {
-      if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 100)) {
+      if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, this.OrientationJumpSevere)) {
         if (this._orientations[i].mesNum == 0)
           continue;
         this._errors.push({text:"Orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.severe, headline: false});
         errSev = true;
-      } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 50)) {
+      } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, this.OrientationJumpMedium)) {
         if (this._orientations[i].mesNum == 0)
           continue;
         this._errors.push({text:"Orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.medium, headline: false});
         errMed = true;
-      } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, 15)) {
+      } else if(!this.checkOrientationPair(this._orientations[i].degree, this._orientations[i+1].degree, this.OrientationJumpMinor)) {
         if (this._orientations[i].mesNum == 0)
           continue;
         this._errors.push({text:"Orientation jumps from " + this._orientations[i].degree + " to " + this._orientations[i+1].degree, mesNum:this._orientations[i].mesNum, severity:Severity.minor, headline: false});
@@ -135,11 +141,11 @@ export class AnomalyAnalyzer {
       }
     }
     if(errSev)
-      this._errors[indHealine].severity = Severity.severe;
+      this._errors[indHeadline].severity = Severity.severe;
     else if(errMed)
-      this._errors[indHealine].severity = Severity.medium;
+      this._errors[indHeadline].severity = Severity.medium;
     else if(errMin)
-      this._errors[indHealine].severity = Severity.minor;
+      this._errors[indHeadline].severity = Severity.minor;
     else
       this._errors.pop();
 
@@ -235,8 +241,9 @@ export class AnomalyAnalyzer {
       if(this._batteryMes[i].cap_per < this._batteryMes[i+1].cap_per) {
         batGoesUp.push({text:this._batteryMes[i].cap_per + '\% - ' + this._batteryMes[i+1].cap_per + "%", mesNum:this._batteryMes[i].messageNum, severity:severity, headline: false});
       }
-      if(Math.abs(this._batteryMes[i+1].cap_per - this._batteryMes[i].cap_per) > 1) {
-        this._errors.push({text:this._batteryMes[i].cap_per + '\% - ' + this._batteryMes[i+1].cap_per + "%", mesNum:this._batteryMes[i].messageNum, severity:severity, headline: false});
+      let difference = Math.abs(this._batteryMes[i+1].cap_per - this._batteryMes[i].cap_per);
+      if (difference > this.BatteryPercentageJumpMedium) {
+        this._errors.push({text:this._batteryMes[i].cap_per + '\% - ' + this._batteryMes[i+1].cap_per + "%", mesNum:this._batteryMes[i].messageNum, severity: difference > this.BatteryPercentageJumpSevere ? Severity.severe : Severity.medium, headline: false});
         batError = true;
       }
     }
