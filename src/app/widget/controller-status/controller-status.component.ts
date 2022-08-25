@@ -147,10 +147,10 @@ export class ControllerStatusComponent implements OnInit, DroneMapWidget {
     } else {
       switch(this.globals.file.productType) {
         case DroneType.Inspire_2:
-          this.pitchMaxVal = 32727;
-          this.rollMaxVal = 16256;
-          this.yawMaxVal = 32727;
-          this.thrMaxVal = 16256;
+          this.pitchMaxVal = 1;
+          this.rollMaxVal = 1;
+          this.yawMaxVal = 1;
+          this.thrMaxVal = 1;
           break;
         case DroneType.Phantom_4_Advanced:
         case DroneType.Matrice_600:
