@@ -56,6 +56,8 @@ export class AnomalyAnalyzer {
   readonly OrientationJumpMinor = 15;
   readonly OrientationJumpMedium = 50;
   readonly OrientationJumpSevere = 100;
+  readonly tickJumpMedium = 100;
+  readonly tickJumpSevere = 200;
 
   private _errors: error[];
   private _gpsMes: GpsDbMessage[];
@@ -262,9 +264,9 @@ export class AnomalyAnalyzer {
     for (let i = 0; i < this._ctrlMes.length - 1; i++) {
       if(this._ctrlMes[i].ctrl_tick !== this._ctrlMes[i+1].ctrl_tick - 1) {
         let severity = Severity.severe;
-        if (Math.abs(this._ctrlMes[i + 1].ctrl_tick - this._ctrlMes[i].ctrl_tick) <= 5) {
+        if (Math.abs(this._ctrlMes[i + 1].ctrl_tick - this._ctrlMes[i].ctrl_tick) < this.tickJumpMedium) {
           severity = Severity.minor;
-        } else if (Math.abs(this._ctrlMes[i + 1].ctrl_tick - this._ctrlMes[i].ctrl_tick) <= 10) {
+        } else if (Math.abs(this._ctrlMes[i + 1].ctrl_tick - this._ctrlMes[i].ctrl_tick) < this.tickJumpSevere) {
           severity = Severity.medium;
           if(sevLevel !== Severity.severe)
             sevLevel = Severity.medium;
